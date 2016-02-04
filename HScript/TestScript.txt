@@ -1,0 +1,127 @@
+﻿
+/* HORSE AGGREGAGTE QA TESTING:
+	-- CREATE A TABLE WITH THREE KEYS AND THREE KEYS TO AGGREGATGE
+	-- TEST EVERY POSSIBLE AGGREGATE FUNCTION
+
+*/
+
+/*
+
+// CREATE A TABLE //
+CREATE TABLE TEMP.AGG_TEST_S1
+(
+	KEY1 AS INT,
+	KEY2 AS STRING.2,
+	KEY3 AS INT,
+
+	VALUE1 AS DOUBLE,
+	VALUE2 AS INT,
+	VALUE3 AS STRING.8,
+	VALUE4 AS DOUBLE,
+	VALUE5 AS DOUBLE
+
+);
+CHUNK SIZE 100000;
+%;
+
+// LOAD THE TABLE WITH TEST DATA //
+DECLARE; 
+	TICKER AS INT = 0; 
+	X_VALUE AS DOUBLE = 0D;
+%;
+
+FOR TICKER = 0 TO 999999;
+BEGIN;
+	X_VALUE = RAND() * 2D - 1D;
+	RETURN
+		TICKER AS KEY1,
+		SUBSTR(TOHEX(TICKER -> BLOB),2,2) AS KEY2,
+		TICKER % 10 AS KEY3,
+		RAND() AS VALUE1,
+		(TICKER % 5 == 0 ? @@NULL_INT : RANDINT() % 1000) AS VALUE2,
+		TOHEX(GUID()) AS VALUE3,
+		X_VALUE AS VALUE4,
+		X_VALUE * 0.50 + 0.25 AS VALUE5
+		APPEND TEMP.AGG_TEST_S1
+	;
+
+END;
+%;
+*/
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+	TEST:
+	-- COUNT
+	-- COUNT_NULL
+	-- COUNT_ALL
+	-- SUM
+
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+/*
+AGGREGATE TEMP.AGG_TEST_S1;
+BY KEY3;
+OVER
+
+	COUNT(VALUE2) AS COUNT_OF,
+	COUNT_NULL(VALUE2) AS COUNT_NULL_OF,
+	COUNT_ALL(VALUE2) AS COUNT_ALL_OF,
+	SUM(VALUE2) AS SUM_OF,
+
+	COUNT(VALUE2) WHERE (KEY1 % 2 == 0) AS COUNT_OF_W,
+	COUNT_NULL(VALUE2) WHERE (KEY1 % 2 == 0) AS COUNT_NULL_OF_W,
+	COUNT_ALL(VALUE2) WHERE (KEY1 % 2 == 0) AS COUNT_ALL_OF_W,
+	SUM(VALUE2) WHERE (KEY1 % 2 == 0) AS SUM_OF_W
+;
+RETURN TABLE.* INTO TEMP.AGG_TEST_S2;
+%;
+
+EXEC SYS_PRINT_TABLE; @TABLE = DATA TEMP.AGG_TEST_S2; %;
+*/
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+	TEST:
+	-- MIN
+	-- MAX
+	-- FREQ
+
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+AGGREGATE TEMP.AGG_TEST_S1;
+BY KEY3;
+OVER
+
+	MIN(VALUE3) AS MIN_OF,
+	MAX(VALUE3) AS MAX_OF,
+	FREQ(VALUE4 < 0D) AS FREQ_OF,
+
+	MIN(VALUE3) WHERE (KEY1 % 2 == 0) AS MIN_OF_W,
+	MAX(VALUE3) WHERE (KEY1 % 2 == 0) AS MAX_OF_W,
+	FREQ(VALUE4 < 0D) WHERE (KEY1 % 2 == 0) AS FREQ_OF_W
+
+;
+RETURN TABLE.* INTO TEMP.AGG_TEST_S3;
+%;
+
+EXEC SYS_PRINT_TABLE; @TABLE = DATA TEMP.AGG_TEST_S3; %;
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+	TEST:
+	-- AVG
+	-- VAR
+	-- STDEV
+
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	
+	TEST:
+	-- COVAR
+	-- CORR
+	-- INTERCEPT
+	-- SLOPE
+
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+

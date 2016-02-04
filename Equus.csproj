@@ -1,0 +1,289 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Antlr4.4.3.0\build\Antlr4.props" Condition="Exists('..\packages\Antlr4.4.3.0\build\Antlr4.props')" />
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{847EE946-73FD-45BF-94E8-30426F453006}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Equus</RootNamespace>
+    <AssemblyName>Equus</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Antlr4.Runtime.net45, Version=4.3.0.0, Culture=neutral, PublicKeyToken=eb42632606e9261f, processorArchitecture=MSIL">
+      <HintPath>..\packages\Antlr4.Runtime.4.3.0\lib\net45\Antlr4.Runtime.net45.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Andalusian\TNodeAppendTo.cs" />
+    <Compile Include="Andalusian\TNodeAppendToAsync.cs" />
+    <Compile Include="Andalusian\TNodeAssignScalar.cs" />
+    <Compile Include="Andalusian\TNodeBeginEnd.cs" />
+    <Compile Include="Andalusian\TNodeEscapeLoop.cs" />
+    <Compile Include="Andalusian\TNodeEscapeRead.cs" />
+    <Compile Include="Andalusian\TNodeExecute.cs" />
+    <Compile Include="Andalusian\TNodeFor.cs" />
+    <Compile Include="Andalusian\TNodeIf.cs" />
+    <Compile Include="Andalusian\TNodeMatrixAssign.cs" />
+    <Compile Include="Andalusian\TNodeMatrixUnitAssign.cs" />
+    <Compile Include="Andalusian\TNodeNothing.cs" />
+    <Compile Include="Andalusian\TNodePrint.cs" />
+    <Compile Include="Andalusian\TNodePrintMatrix.cs" />
+    <Compile Include="Andalusian\TNodeProcedure.cs" />
+    <Compile Include="Andalusian\TNodeSet.cs" />
+    <Compile Include="Calabrese\FNodeGradient.cs" />
+    <Compile Include="Calabrese\CellFunctions.cs" />
+    <Compile Include="Calabrese\FNode.cs" />
+    <Compile Include="Calabrese\FNodeAffinity.cs" />
+    <Compile Include="Calabrese\FNodeAnalysis.cs" />
+    <Compile Include="Calabrese\FNodeArrayDynamicRef.cs" />
+    <Compile Include="Calabrese\FNodeCompactor.cs" />
+    <Compile Include="Calabrese\FNodeDynamicRef.cs" />
+    <Compile Include="Calabrese\FNodeEquality.cs" />
+    <Compile Include="Calabrese\FNodeFactory.cs" />
+    <Compile Include="Calabrese\FNodeFieldRef.cs" />
+    <Compile Include="Calabrese\FNodeHeapRef.cs" />
+    <Compile Include="Calabrese\FNodePointer.cs" />
+    <Compile Include="Calabrese\FNodeResult.cs" />
+    <Compile Include="Calabrese\FNodeSet.cs" />
+    <Compile Include="Calabrese\FNodeValue.cs" />
+    <Compile Include="Calabrese\Lambda.cs" />
+    <Compile Include="Calabrese\Predicate.cs" />
+    <Compile Include="Clydesdale\Procedure.cs" />
+    <Compile Include="Clydesdale\SystemProcedures.cs" />
+    <Compile Include="Fjord\MNode.cs" />
+    <Compile Include="Fjord\MNodeAdd.cs" />
+    <Compile Include="Fjord\MNodeAddScalar.cs" />
+    <Compile Include="Fjord\MNodeCheckDivide.cs" />
+    <Compile Include="Fjord\MNodeCheckDivideScalar.cs" />
+    <Compile Include="Fjord\MNodeDivide.cs" />
+    <Compile Include="Fjord\MNodeDivideScalar.cs" />
+    <Compile Include="Fjord\MNodeHeap.cs" />
+    <Compile Include="Fjord\MNodeIdentity.cs" />
+    <Compile Include="Fjord\MNodeInverse.cs" />
+    <Compile Include="Fjord\MNodeLiteral.cs" />
+    <Compile Include="Fjord\MNodeMatrixMultiply.cs" />
+    <Compile Include="Fjord\MNodeMinus.cs" />
+    <Compile Include="Fjord\MNodeMultiply.cs" />
+    <Compile Include="Fjord\MNodeMultiplyScalar.cs" />
+    <Compile Include="Fjord\MNodeSubtract.cs" />
+    <Compile Include="Fjord\MNodeSubtractScalar.cs" />
+    <Compile Include="Fjord\MNodeTranspose.cs" />
+    <Compile Include="Friesian\WebQuery.cs" />
+    <Compile Include="Gidran\CellMatrix.cs" />
+    <Compile Include="Gidran\CellVector.cs" />
+    <Compile Include="Horse\Cell\Cell.cs" />
+    <Compile Include="Horse\Cell\CellAffinity.cs" />
+    <Compile Include="Horse\Cell\CellAffinityHelper.cs" />
+    <Compile Include="Horse\Cell\CellValues.cs" />
+    <Compile Include="Horse\Keys\Key.cs" />
+    <Compile Include="Horse\Keys\KeyAffinity.cs" />
+    <Compile Include="Horse\Keys\SortKeyFactory.cs" />
+    <Compile Include="Horse\Serialize\Communicator.cs" />
+    <Compile Include="Horse\Serialize\Splitter.cs" />
+    <Compile Include="HScript\ActionVisitor.cs" />
+    <Compile Include="HScript\CommandCompiler.cs" />
+    <Compile Include="HScript\CommandReturn.cs" />
+    <Compile Include="HScript\CommandVisitor.cs" />
+    <Compile Include="HScript\ExpressionVisitor.cs" />
+    <Compile Include="HScript\Parameters\HParameter.cs" />
+    <Compile Include="HScript\HScriptLexer.g4.cs">
+      <DependentUpon>HScriptLexer.g4</DependentUpon>
+    </Compile>
+    <Compile Include="HScript\HScriptParser.g4.cs">
+      <DependentUpon>HScriptParser.g4</DependentUpon>
+    </Compile>
+    <Compile Include="HScript\HScriptProcessor.cs" />
+    <Compile Include="HScript\MatrixVisitor.cs" />
+    <Compile Include="HScript\Parameters\HParameterAffinity.cs" />
+    <Compile Include="HScript\Parameters\HParameterSet.cs" />
+    <Compile Include="HScript\ScriptHelper.cs" />
+    <Compile Include="HScript\VisitorHelper.cs" />
+    <Compile Include="HScript\Workspace.cs" />
+    <Compile Include="Mustang\MapReduce\MapFactory.cs" />
+    <Compile Include="Mustang\MapReduce\MRJob.cs" />
+    <Compile Include="Mustang\MapReduce\Reducer.cs" />
+    <Compile Include="Mustang\TablePartitions\LargeTablePartitioner.cs" />
+    <Compile Include="Mustang\MapReduce\MapNode.cs" />
+    <Compile Include="Mustang\TablePartitions\SmallTablePartitioner.cs" />
+    <Compile Include="Mustang\TablePartitions\TablePartitioner.cs" />
+    <Compile Include="Nokota\Aggregate.cs" />
+    <Compile Include="Nokota\AggregateAverage.cs" />
+    <Compile Include="Nokota\AggregateCorrelation.cs" />
+    <Compile Include="Nokota\AggregateCount.cs" />
+    <Compile Include="Nokota\AggregateCountAll.cs" />
+    <Compile Include="Nokota\AggregateCountNull.cs" />
+    <Compile Include="Nokota\AggregateCovariance.cs" />
+    <Compile Include="Nokota\AggregateFreq.cs" />
+    <Compile Include="Nokota\AggregateIntercept.cs" />
+    <Compile Include="Nokota\AggregateMax.cs" />
+    <Compile Include="Nokota\AggregateMin.cs" />
+    <Compile Include="Nokota\AggregateFactory.cs" />
+    <Compile Include="Nokota\AggregateSet.cs" />
+    <Compile Include="Nokota\AggregateSlope.cs" />
+    <Compile Include="Nokota\AggregateStat.cs" />
+    <Compile Include="Nokota\AggregateStatCo.cs" />
+    <Compile Include="Nokota\AggregateStdevP.cs" />
+    <Compile Include="Nokota\AggregateSum.cs" />
+    <Compile Include="Nokota\AggregateVarianceP.cs" />
+    <Compile Include="Gidran\Matrix.cs" />
+    <Compile Include="Gidran\Vector.cs" />
+    <Compile Include="Numerics\SpecialFunction.cs" />
+    <Compile Include="Percheron\DataFactory.cs" />
+    <Compile Include="QuarterHorse\ActionPlan.cs" />
+    <Compile Include="QuarterHorse\AggregatePlan.cs" />
+    <Compile Include="QuarterHorse\CommandPlan.cs" />
+    <Compile Include="QuarterHorse\CreatePlan.cs" />
+    <Compile Include="QuarterHorse\DeletePlan.cs" />
+    <Compile Include="QuarterHorse\GenericPlan.cs" />
+    <Compile Include="QuarterHorse\MergePlan.cs" />
+    <Compile Include="QuarterHorse\PartitionedAggregatePlan.cs" />
+    <Compile Include="QuarterHorse\ReadPlan.cs" />
+    <Compile Include="Andalusian\TNode.cs" />
+    <Compile Include="QuarterHorse\UpdatePlan.cs" />
+    <Compile Include="Shire\Heap.cs" />
+    <Compile Include="Shire\RecordReader.cs" />
+    <Compile Include="Shire\AggregateStructure.cs" />
+    <Compile Include="Shire\RecordWriter.cs" />
+    <Compile Include="Shire\Register.cs" />
+    <Compile Include="Shire\TableReader.cs" />
+    <Compile Include="Shire\TableWriter.cs" />
+    <Compile Include="Horse\Record\CompoundRecord.cs" />
+    <Compile Include="Horse\Record\Record.cs" />
+    <Compile Include="Horse\Record\RecordBuilder.cs" />
+    <Compile Include="Horse\Schema\Schema.cs" />
+    <Compile Include="Horse\Serialize\BinarySerializer.cs" />
+    <Compile Include="Horse\Serialize\Comm.cs" />
+    <Compile Include="Horse\Serialize\DataSetManager.cs" />
+    <Compile Include="Horse\Serialize\TextSerializer.cs" />
+    <Compile Include="Horse\Table\Data.cs" />
+    <Compile Include="Horse\Table\KeyValueSet.cs" />
+    <Compile Include="Horse\Table\Header.cs" />
+    <Compile Include="Horse\Table\Indexing.cs" />
+    <Compile Include="Horse\Table\IndexSet.cs" />
+    <Compile Include="Horse\Table\RecordSet.cs" />
+    <Compile Include="Horse\Table\Table.cs" />
+    <Compile Include="Horse\Table\TableHeader.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Thoroughbred\ARizenTalent\GeneralizedLinearModel.cs" />
+    <Compile Include="Thoroughbred\ARizenTalent\LinearRegression.cs" />
+    <Compile Include="Thoroughbred\ARizenTalent\NonlinearRegressionModel.cs" />
+    <Compile Include="Thoroughbred\ARizenTalent\RegressionModel.cs" />
+    <Compile Include="_Notes\Notes.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <Antlr4 Include="HScript\HScriptLexer.g4">
+      <Generator>MSBuild:Compile</Generator>
+      <CustomToolNamespace>Equus.HScript</CustomToolNamespace>
+    </Antlr4>
+    <Antlr4 Include="HScript\HScriptParser.g4">
+      <Generator>MSBuild:Compile</Generator>
+      <CustomToolNamespace>Equus.HScript</CustomToolNamespace>
+    </Antlr4>
+    <None Include="HScriptTemplate.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>HScriptTemplate.txt</LastGenOutput>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Thoroughbred\ManOWar\" />
+    <Folder Include="Thoroughbred\Seabiscut\" />
+    <Folder Include="Thoroughbred\WarAdmiral\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="HScriptTemplate.txt">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>HScriptTemplate.tt</DependentUpon>
+    </Content>
+    <Content Include="HScript\TestScript.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.5">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.5 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Antlr4.4.3.0\build\Antlr4.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Antlr4.4.3.0\build\Antlr4.props'))" />
+    <Error Condition="!Exists('..\packages\Antlr4.4.3.0\build\Antlr4.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Antlr4.4.3.0\build\Antlr4.targets'))" />
+  </Target>
+  <Import Project="..\packages\Antlr4.4.3.0\build\Antlr4.targets" Condition="Exists('..\packages\Antlr4.4.3.0\build\Antlr4.targets')" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
