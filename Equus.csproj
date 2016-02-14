@@ -149,6 +149,7 @@
     <Compile Include="HScript\ScriptHelper.cs" />
     <Compile Include="HScript\VisitorHelper.cs" />
     <Compile Include="HScript\Workspace.cs" />
+    <Compile Include="Lipizzan\Basher.cs" />
     <Compile Include="Mustang\MapReduce\MapFactory.cs" />
     <Compile Include="Mustang\MapReduce\MRJob.cs" />
     <Compile Include="Mustang\MapReduce\Reducer.cs" />
@@ -177,8 +178,9 @@
     <Compile Include="Nokota\AggregateVarianceP.cs" />
     <Compile Include="Gidran\Matrix.cs" />
     <Compile Include="Gidran\Vector.cs" />
+    <Compile Include="Numerics\ScalarFunctions.cs" />
     <Compile Include="Numerics\SpecialFunction.cs" />
-    <Compile Include="Percheron\DataFactory.cs" />
+    <Compile Include="Dressage\DataFactory.cs" />
     <Compile Include="QuarterHorse\ActionPlan.cs" />
     <Compile Include="QuarterHorse\AggregatePlan.cs" />
     <Compile Include="QuarterHorse\CommandPlan.cs" />
@@ -219,6 +221,15 @@
     <Compile Include="Thoroughbred\ARizenTalent\LinearRegression.cs" />
     <Compile Include="Thoroughbred\ARizenTalent\NonlinearRegressionModel.cs" />
     <Compile Include="Thoroughbred\ARizenTalent\RegressionModel.cs" />
+    <Compile Include="Thoroughbred\ManOWar\NeuralNetwork.cs" />
+    <Compile Include="Thoroughbred\ManOWar\NeuralNetworkFactory.cs" />
+    <Compile Include="Thoroughbred\ManOWar\NeuralNode.cs" />
+    <Compile Include="Thoroughbred\ManOWar\NeuralNodeAffinity.cs" />
+    <Compile Include="Thoroughbred\ManOWar\NeuralNodeReduction.cs" />
+    <Compile Include="Thoroughbred\ManOWar\NeuralRule.cs" />
+    <Compile Include="Thoroughbred\ManOWar\NodeAnalytics.cs" />
+    <Compile Include="Thoroughbred\ManOWar\NodeLink.cs" />
+    <Compile Include="Thoroughbred\ManOWar\SimpleNetwork.cs" />
     <Compile Include="_Notes\Notes.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -238,7 +249,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Thoroughbred\ManOWar\" />
     <Folder Include="Thoroughbred\Seabiscut\" />
     <Folder Include="Thoroughbred\WarAdmiral\" />
   </ItemGroup>

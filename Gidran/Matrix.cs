@@ -16,7 +16,7 @@ namespace Equus.Gidran
         internal const int MATRIX_ROUND = 5;
         protected int _Rows = -1; // Rows
         protected int _Columns = -1; // Columns
-        protected double[,] _Data;
+        protected double[][] _Data;
 
         // Constructors //
         /// <summary>
@@ -37,7 +37,13 @@ namespace Equus.Gidran
             this._Rows = Rows;
             this._Columns = Columns;
 
-            this._Data = new double[this._Rows, this._Columns];
+            List<double[]> _val = new List<double[]>();
+            for(int i = 0; i < Rows; i++)
+            {
+                _val.Add(new double[Columns]);
+            }
+
+            this._Data = _val.ToArray();
 
         }
 
@@ -87,15 +93,27 @@ namespace Equus.Gidran
         public virtual double this[int Row, int Column]
         {
 
-            get { return this._Data[Row ,Column]; }
-            set { this._Data[Row, Column] = value; }
+            get { return this._Data[Row][Column]; }
+            set { this._Data[Row][Column] = value; }
 
+        }
+
+        public virtual double[] this[int Row]
+        {
+            get
+            {
+                return this._Data[Row];
+            }
+            set
+            {
+                this._Data[Row] = value;
+            }
         }
 
         /// <summary>
         /// Gets an array vector 
         /// </summary>
-        public double[,] ToArray
+        public double[][] ToArray
         {
             get { return _Data; }
         }

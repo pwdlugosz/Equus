@@ -23,8 +23,8 @@ namespace Equus.Gidran
 
         public double this[int RowIndex]
         {
-            get { return this._Data[RowIndex, 0]; }
-            set { this._Data[RowIndex, 0] = value; }
+            get { return this._Data[RowIndex][0]; }
+            set { this._Data[RowIndex][0] = value; }
         }
 
     }

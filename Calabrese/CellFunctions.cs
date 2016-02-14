@@ -1792,7 +1792,14 @@ namespace Equus.Calabrese
             }
             return r;
         }
-        
+
+        public static Cell Sum(IEnumerable<Cell> Data, IEnumerable<Cell> Weight)
+        {
+            // Record: 0 = sum weights, 1 = sum data, 2 = sum data squared
+            Record r = Univariate(Data, Weight);
+            return r[1];
+        }
+
         public static Cell Average(IEnumerable<Cell> Data, IEnumerable<Cell> Weight)
         {
             // Record: 0 = sum weights, 1 = sum data, 2 = sum data squared
@@ -1969,6 +1976,21 @@ namespace Equus.Calabrese
 
     }
 
+    public sealed class CellMSum : CellMovingUni
+    {
+
+        public CellMSum()
+            : base(FunctionNames.MUTABLE_MSUM)
+        {
+        }
+
+        public override Cell Motion(Queue<Cell> Data, Queue<Cell> Weight)
+        {
+            return CellCollectionFunctions.Sum(Data, Weight);
+        }
+
+    }
+
     public sealed class CellMAvg : CellMovingUni
     {
 
@@ -2131,7 +2153,7 @@ namespace Equus.Calabrese
 
     #endregion
 
-    // Optimization helpers hidden form Percheron //
+    // Optimization helpers hidden form Dressage //
     #region HiddenFunctions
 
     public sealed class AndMany : CellFunction
@@ -2418,6 +2440,7 @@ namespace Equus.Calabrese
         public const string MUTABLE_MCORR = "mcorr";
         public const string MUTABLE_MINTERCEPT = "mintercept";
         public const string MUTABLE_MSLOPE = "mslope";
+        public const string MUTABLE_MSUM = "msum";
 
         public const string MUTABLE_KEY_CHANGE = "key_change";
 
@@ -2568,6 +2591,7 @@ namespace Equus.Calabrese
             { FunctionNames.MUTABLE_RAND, () => { return new CellRandom();}},
             { FunctionNames.MUTABLE_RANDINT, () => { return new CellRandomInt();}},
             
+            { FunctionNames.MUTABLE_MSUM, () => { return new CellMSum();}},
             { FunctionNames.MUTABLE_MAVG, () => { return new CellMAvg();}},
             { FunctionNames.MUTABLE_MVAR, () => { return new CellMVar();}},
             { FunctionNames.MUTABLE_MSTDEV, () => { return new CellMStdev();}},

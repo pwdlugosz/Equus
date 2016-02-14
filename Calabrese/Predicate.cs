@@ -41,7 +41,7 @@ namespace Equus.Calabrese
             _Node.AssignRegister(Memory);
         }
 
-        public Predicate Opposite
+        public Predicate NOT
         {
             get
             {

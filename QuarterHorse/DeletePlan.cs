@@ -34,9 +34,20 @@ namespace Equus.QuarterHorse
 
             this.Message.AppendLine(string.Format("Source: {0}", this._data.Name));
             this._timer = System.Diagnostics.Stopwatch.StartNew();
-            Tuple<long, long> read_writes = Delete(_data, _where);
+            
+            if (this._data.IsBig)
+            {
+                Tuple<long, long> read_writes = Delete(_data.ToBigRecordSet, _where);
+                this._reads = read_writes.Item1;
+                this._writes = read_writes.Item2;
+            }
+            else
+            {
+                this._writes = Delete(_data.ToRecordSet, _where);
+                this._reads = _data.ToRecordSet.Count;
+            }
+
             this._timer.Stop();
-            this._reads = read_writes.Item1;
             this.Message.AppendLine(string.Format("Reads: {0}", this._reads));
             this.Message.AppendLine(string.Format("Writes: {0}", this._writes));
 
@@ -46,23 +57,33 @@ namespace Equus.QuarterHorse
         {
 
             long n = 0;
-            StaticRegister mem = new StaticRegister(null);
-            Where.AssignRegister(mem);
-            for (int i = Extent.Count - 1; i >= 0; i--)
-            {
-                mem.Assign(Extent[i]);
-                if (Where.Render())
-                {
-                    Extent.Remove(i);
-                    n++;
-                }
-
-            }
+            RecordSet rs = new RecordSet(Extent.Columns);
+            RecordWriter w = rs.OpenWriter();
+            FastReadPlan plan = new FastReadPlan(Extent, Where.NOT, new FNodeSet(Extent.Columns), w);
+            plan.Execute();
+            w.Close();
+            n = Extent.Count - rs.Count;
+            Extent._Cache = rs._Cache;
             return n;
+
+            //long n = 0;
+            //StaticRegister mem = new StaticRegister(null);
+            //Where.AssignRegister(mem);
+            //for (int i = Extent.Count - 1; i >= 0; i--)
+            //{
+            //    mem.Assign(Extent[i]);
+            //    if (Where.Render())
+            //    {
+            //        Extent.Remove(i);
+            //        n++;
+            //    }
+
+            //}
+            //return n;
 
         }
 
-        public static Tuple<long,long> Delete(DataSet Data, Predicate Where)
+        public static Tuple<long,long> Delete(Table Data, Predicate Where)
         {
 
             long CurrentCount = 0;
@@ -74,12 +95,11 @@ namespace Equus.QuarterHorse
                 // Append the current record count //
                 CurrentCount += (long)rs.Count;
 
-                // Append the new count and delete //
+                // Delete //
                 NewCount += Delete(rs, Where);
 
-                // Flush //
-                if (rs.IsAttached)
-                    BinarySerializer.Flush(rs);
+                // Push //
+                Data.Push(rs);
 
             }
 

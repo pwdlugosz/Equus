@@ -19,7 +19,7 @@ namespace Equus.Gidran
         protected int _Columns = -1; // Columns
         protected Cell[,] _Data;
         protected CellAffinity _Affinity;
-
+        
         // Constructors //
         /// <summary>
         /// Create a matrix with a default value

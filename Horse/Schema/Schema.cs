@@ -32,7 +32,7 @@ namespace Equus.Horse
          * -- Blobs take up 4 + n bytes of data
          * 
          */
-        internal const int MAX_VARIABLE_SIZE = 1024;
+        internal const int MAX_VARIABLE_SIZE = 8192; // 8k
         internal const int DEFAULT_STRING_SIZE = 64;
         internal const int DEFAULT_BLOB_SIZE = 16; // 256 bit
 

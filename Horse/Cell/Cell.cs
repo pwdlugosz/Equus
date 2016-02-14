@@ -18,7 +18,7 @@ namespace Equus.Horse
         // Cell constants //
         public const String NULL_STRING_TEXT = "@@NULL"; // the null value text
         public const string HEX_LITERARL = "0x"; // the expected qualifier for a hex string 
-        public const int MAX_STRING_LENGTH = (int)UInt16.MaxValue; // maximum length of a string
+        public const int MAX_STRING_LENGTH = 64*1024; // maximum length of a string, 64k
 
         // Cell internal statics //
         internal static int NUMERIC_ROUNDER = 5; // used for rounding double values 
@@ -1040,6 +1040,13 @@ namespace Equus.Horse
                 {
                     C1.STRING += C2.STRING;
                 }
+                else if (C1.AFFINITY == CellAffinity.BLOB)
+                {
+                    byte[] b = new byte[C1.BLOB.Length + C2.BLOB.Length];
+                    Array.Copy(C1.BLOB, 0, b, 0, C1.BLOB.Length);
+                    Array.Copy(C2.BLOB, 0, b, C1.BLOB.Length, C2.BLOB.Length);
+                    C1 = new Cell(b);
+                }
                 else
                     C1.NULL = 1;
 
@@ -1054,8 +1061,10 @@ namespace Equus.Horse
                 }
                 else if (C1.AFFINITY == CellAffinity.BLOB || C2.AFFINITY == CellAffinity.BLOB)
                 {
-                    C1.AFFINITY = CellAffinity.BLOB;
-                    C1.NULL = 1;
+                    byte[] b = new byte[C1.valueBLOB.Length + C2.valueBLOB.Length];
+                    Array.Copy(C1.valueBLOB, 0, b, 0, C1.valueBLOB.Length);
+                    Array.Copy(C2.valueBLOB, 0, b, C1.valueBLOB.Length, C2.valueBLOB.Length);
+                    C1 = new Cell(b);
                 }
                 else if (C1.AFFINITY == CellAffinity.DOUBLE || C2.AFFINITY == CellAffinity.DOUBLE)
                 {
@@ -3230,6 +3239,38 @@ namespace Equus.Horse
                 else
                 {
                     return (this.NULL == 1 ? 0 : this.BLOB.Length);
+                }
+
+            }
+
+        }
+
+        /// <summary>
+        /// Returns the size of the cell in bytes, including the null byte and affinity
+        /// </summary>
+        internal int DataSize
+        {
+
+            get
+            {
+                if (this.NULL == 1)
+                    return 2;
+
+                if (this.AFFINITY == CellAffinity.DATE_TIME || this.AFFINITY == CellAffinity.DOUBLE || this.AFFINITY == CellAffinity.INT)
+                {
+                    return 10;
+                }
+                else if (this.AFFINITY == CellAffinity.BOOL)
+                {
+                    return 3;
+                }
+                else if (this.AFFINITY == CellAffinity.STRING)
+                {
+                    return this.STRING.Length * 2 + 4;
+                }
+                else
+                {
+                    return this.BLOB.Length + 4;
                 }
 
             }
