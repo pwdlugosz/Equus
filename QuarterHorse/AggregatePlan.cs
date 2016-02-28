@@ -161,6 +161,7 @@ namespace Equus.QuarterHorse
             }
 
             this._returnmemory.Assign(this._aggregates.Evaluate(work_data));
+            this._returnset.AssignRegister(this._returnmemory);
             this._writer.Insert(this._returnset.Evaluate());
 
             this._reads = Reads;
@@ -264,6 +265,30 @@ namespace Equus.QuarterHorse
 
         }
         */
+
+        public static RecordSet Render(DataSet Source, Predicate Filter, FNodeSet Keys, AggregateSet Aggregates)
+        {
+
+            Schema s = Schema.Join(Keys.Columns, Aggregates.GetSchema);
+            RecordSet rs = new RecordSet(s);
+            RecordWriter w = rs.OpenWriter();
+
+            StaticRegister mem1 = new StaticRegister(Source.Columns);
+            Keys.AssignRegister(mem1);
+            Aggregates.AssignRegister(mem1);
+
+            StaticRegister mem2 = new StaticRegister(rs.Columns);
+            FNodeSet out_nodes = new FNodeSet(rs.Columns);
+            out_nodes.AssignRegister(mem2);
+
+            AggregatePlan plan = new AggregatePlan(w, Source, Filter, Keys, Aggregates, new FNodeSet(s), mem1, mem2, Source.Directory);
+            plan.Execute();
+
+            w.Close();
+
+            return rs;
+
+        }
 
     }
 

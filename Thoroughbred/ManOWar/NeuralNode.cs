@@ -26,15 +26,49 @@ namespace Equus.Thoroughbred.ManOWar
             this.Add(Master);
         }
 
+        // Properties //
         public List<NeuralNode> Nodes
         {
             get { return this._Nodes; }
         }
 
+        public int StaticNodeCount
+        {
+            get;
+            private set;
+        }
+
+        public int DynamicNodeCount
+        {
+            get;
+            private set;
+        }
+
+        public int ReferenceNodeCount
+        {
+            get;
+            private set;
+        }
+
+        public int PredictionNodeCount
+        {
+            get;
+            private set;
+        }
+
+        // Methods //
         public void Add(NeuralNode Node)
         {
             if (this._Nodes.Contains(Node)) return;
             this._Nodes.Add(Node);
+            if (Node.Affinity == NeuralNodeAffinity.Dynamic)
+                this.DynamicNodeCount++;
+            else if (Node.Affinity == NeuralNodeAffinity.Prediction)
+                this.PredictionNodeCount++;
+            else if (Node.Affinity == NeuralNodeAffinity.Reference)
+                this.ReferenceNodeCount++;
+            else if (Node.Affinity == NeuralNodeAffinity.Static)
+                this.StaticNodeCount++;
         }
 
         public void Add(NodeLink Link)
@@ -112,6 +146,11 @@ namespace Equus.Thoroughbred.ManOWar
                     if (NodeAnalytics.AnyCircular(n)) return true;
                 return false;
             }
+        }
+
+        public int Count
+        {
+            get { return this._Responses.Count; }
         }
 
         // Methods //

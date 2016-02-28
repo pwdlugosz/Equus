@@ -214,6 +214,23 @@ namespace Equus.Calabrese
             Tree._Nodes.Reverse();
         }
 
+        public static FNodeSet Union(params FNodeSet[] NodeSets)
+        {
+
+            FNodeSet f = new FNodeSet();
+            foreach (FNodeSet n in NodeSets)
+            {
+
+                for (int i = 0; i < n.Count; i++)
+                {
+                    f.Add(n._Alias[i], n._Nodes[i]);
+                }
+
+            }
+            return f;
+
+        }
+
     }
 
 

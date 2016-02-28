@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 namespace Equus.Thoroughbred.ManOWar
 {
 
+    /// <summary>
+    /// Represents the base class for propigation training methods
+    /// </summary>
     public abstract class NeuralRule
     {
 
@@ -41,8 +44,12 @@ namespace Equus.Thoroughbred.ManOWar
             return Bound(Value, FLOOR, CEILING);
         }
 
+
     }
 
+    /// <summary>
+    /// Backpropigation weight update; w += dx * learning_rate + dx2 * momentum
+    /// </summary>
     public sealed class BProp : NeuralRule
     {
 
@@ -66,8 +73,16 @@ namespace Equus.Thoroughbred.ManOWar
             return Link.GRADIENT * this._LearningRate + Link.GRADIENT_LAG * this._Momentum;
         }
 
+        public override string ToString()
+        {
+            return string.Format("BPROP;{0};{1}", this._LearningRate, this._Momentum);
+        }
+
     }
 
+    /// <summary>
+    /// Resiliant propigation weight up; w += bound(d * sign(dx), 0.0001, 2.00), where d changes each round
+    /// </summary>
     public class RProp : NeuralRule
     {
 
@@ -116,8 +131,16 @@ namespace Equus.Thoroughbred.ManOWar
 
         }
 
+        public override string ToString()
+        {
+            return string.Format("RPROP;{0};{1}", this._DownAxon, this._UpAxon);
+        }
+
     }
 
+    /// <summary>
+    /// Resiliant propigation PLUS weight up; w += bound(d * sign(dx), 0.0001, 2.00), where d changes each round
+    /// </summary>
     public sealed class RPropPlus : RProp
     {
 
@@ -162,8 +185,16 @@ namespace Equus.Thoroughbred.ManOWar
 
         }
 
+        public override string ToString()
+        {
+            return string.Format("RPROP+;{0};{1}", this._DownAxon, this._UpAxon);
+        }
+
     }
 
+    /// <summary>
+    /// Resiliant propigation MINUS weight up; w += bound(d * sign(dx), 0.0001, 2.00), where d changes each round
+    /// </summary>
     public sealed class RPropMinus : RProp
     {
 
@@ -200,8 +231,16 @@ namespace Equus.Thoroughbred.ManOWar
 
         }
 
+        public override string ToString()
+        {
+            return string.Format("RPROP-;{0};{1}", this._DownAxon, this._UpAxon);
+        }
+
     }
 
+    /// <summary>
+    /// Improved resiliant propigation PLUS weight up; w += bound(d * sign(dx), 0.0001, 2.00), where d changes each round
+    /// </summary>
     public sealed class iRPropPlus : RProp
     {
 
@@ -249,8 +288,16 @@ namespace Equus.Thoroughbred.ManOWar
 
         }
 
+        public override string ToString()
+        {
+            return string.Format("iRPROP+;{0};{1}", this._DownAxon, this._UpAxon);
+        }
+
     }
 
+    /// <summary>
+    /// Improved resiliant propigation MINUS weight up; w += bound(d * sign(dx), 0.0001, 2.00), where d changes each round
+    /// </summary>
     public sealed class iRPropMinus : RProp
     {
 
@@ -295,8 +342,16 @@ namespace Equus.Thoroughbred.ManOWar
 
         }
 
+        public override string ToString()
+        {
+            return string.Format("iRPROP-;{0};{1}", this._DownAxon, this._UpAxon);
+        }
+
     }
 
+    /// <summary>
+    /// Manhattan propigation; w += sign(dx) * learning_rate + sign(dx2) * momentum 
+    /// </summary>
     public sealed class MProp : NeuralRule
     {
 
@@ -324,8 +379,16 @@ namespace Equus.Thoroughbred.ManOWar
 
         }
 
+        public override string ToString()
+        {
+            return string.Format("MPROP;{0};{1}", this._GradientWeight, this._MomentumWeight);
+        }
+
     }
 
+    /// <summary>
+    /// Quick propigation
+    /// </summary>
     public sealed class QProp : NeuralRule
     {
 
@@ -358,6 +421,11 @@ namespace Equus.Thoroughbred.ManOWar
             else
                 return q;
 
+        }
+
+        public override string ToString()
+        {
+            return string.Format("QPROP;{0};{1};{2}", this._Slope, this._Acceleration, this._Scale);
         }
 
     }
@@ -401,44 +469,6 @@ namespace Equus.Thoroughbred.ManOWar
             Link.DELTA_LAG = Link.DELTA;
             Link.DELTA = d;
             return w;
-
-        }
-
-    }
-
-    public static class RuleFactory
-    {
-
-        public static NeuralRule Construct(string Token, ResponseNodeSet Master)
-        {
-
-            Token = Token.Trim().ToLower();
-
-            switch (Token)
-            {
-
-                case "bprop":
-                    return new BProp(Master);
-                case "rprop":
-                    return new RProp(Master);
-                case "rprop+":
-                    return new RPropPlus(Master);
-                case "rprop-":
-                    return new RPropMinus(Master);
-                case "irprop+":
-                    return new iRPropPlus(Master);
-                case "irprop-":
-                    return new iRPropMinus(Master);
-                case "mprop":
-                    return new MProp(Master);
-                case "qprop":
-                    return new QProp(Master);
-                case "hprop":
-                    return new HProp(Master);
-
-            }
-
-            throw new ArgumentException(string.Format("Rule '{0}' is invalid", Token));
 
         }
 

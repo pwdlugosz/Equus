@@ -22,6 +22,7 @@ namespace Equus.QuarterHorse
         private Predicate _where;
         private FNodeSet _return;
         private RecordWriter _output;
+        internal long _limit = -1;
         
         public FastReadPlan(DataSet Data, Predicate Where, FNodeSet Fields, RecordWriter Output)
         {
@@ -51,6 +52,10 @@ namespace Equus.QuarterHorse
             // Start the node //
             yeild_node.BeginInvoke();
 
+            // Limiter //
+            if (this._limit == -1)
+                this._limit = long.MaxValue;
+
             // Read the data //
             while (!reader.EndOfData)
             {
@@ -60,6 +65,10 @@ namespace Equus.QuarterHorse
 
                 // Advance the stream //
                 reader.Advance();
+
+                // Limiter //
+                if (this._reads >= this._limit)
+                    break;
 
                 // Accumulate the reads //
                 this._reads++;
@@ -80,6 +89,34 @@ namespace Equus.QuarterHorse
             this.Message.AppendLine("Reads: " + this._reads.ToString());
             this.Message.AppendLine("Writes: " + this._writes.ToString());
 
+        }
+
+        public static RecordSet Render(DataSet Data, Predicate Where, FNodeSet Fields, long Limit)
+        {
+
+            RecordSet rs = new RecordSet(Fields.Columns);
+            RecordWriter w = rs.OpenWriter();
+            FastReadPlan plan = new FastReadPlan(Data, Where, Fields, w);
+            plan._limit = Limit;
+            plan.Execute();
+            w.Close();
+            return rs;
+
+        }
+
+        public static RecordSet Render(DataSet Data, Predicate Where, FNodeSet Fields)
+        {
+            return Render(Data, Where, Fields, long.MaxValue);
+        }
+
+        public static RecordSet Render(DataSet Data, Predicate Where)
+        {
+            return Render(Data, Where, new FNodeSet(Data.Columns), long.MaxValue);
+        }
+
+        public static RecordSet Render(DataSet Data, FNodeSet Fields)
+        {
+            return Render(Data, Predicate.TrueForAll, Fields, long.MaxValue);
         }
 
     }

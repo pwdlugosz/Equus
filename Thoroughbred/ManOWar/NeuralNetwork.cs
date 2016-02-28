@@ -11,6 +11,9 @@ using Equus.Calabrese;
 namespace Equus.Thoroughbred.ManOWar
 {
 
+    /// <summary>
+    /// Represents a feed-forward neural network
+    /// </summary>
     public sealed class NeuralNetwork
     {
 
@@ -26,18 +29,22 @@ namespace Equus.Thoroughbred.ManOWar
         private NodeLinkMaster _Links;
         private NodeSet _Nodes;
         private ResponseNodeSet _Responses;
+        private NeuralRule _Rule;
+        private Matrix _Data;
 
         // Metadata //
         private TimeSpan _RunTime;
 
         // Constructor //
-        public NeuralNetwork(NodeLinkMaster Links, NodeSet Nodes, ResponseNodeSet Responses)
+        public NeuralNetwork(NodeLinkMaster Links, NodeSet Nodes, ResponseNodeSet Responses, NeuralRule Rule, Matrix Data)
         {
 
             // Set values //
             this._Links = Links;
             this._Nodes = Nodes;
             this._Responses = Responses;
+            this._Rule = Rule;
+            this._Data = Data;
 
             // Initialize //
             this.Initialize();
@@ -133,7 +140,7 @@ namespace Equus.Thoroughbred.ManOWar
         }
 
         // Train Methods //
-        public void Render(Matrix Data, NeuralRule Rule)
+        public void Render()
         {
 
             // Start stopwatch //
@@ -144,11 +151,11 @@ namespace Equus.Thoroughbred.ManOWar
             {
 
                 // All data points //
-                for (int matrix_row = 0; matrix_row < Data.RowCount; matrix_row++)
+                for (int matrix_row = 0; matrix_row < this._Data.RowCount; matrix_row++)
                 {
 
                     // Render Nodes //
-                    this._Nodes.Render(Data[matrix_row]);
+                    this._Nodes.Render(this._Data[matrix_row]);
 
                     // Render Gradients //
                     this._Responses.RenderGradients();
@@ -163,7 +170,7 @@ namespace Equus.Thoroughbred.ManOWar
                 }
 
                 // Update the weights //
-                this._Links.WeightUpdate(Rule);
+                this._Links.WeightUpdate(this._Rule);
 
                 //Console.WriteLine("TREE : " + this._Responses.MSE);
                 //for (int i = 0; i < this.Links.Links.Count; i++)
@@ -189,12 +196,16 @@ namespace Equus.Thoroughbred.ManOWar
 
         }
 
-        public void Render(DataSet Data, FNodeSet Fields, Predicate Filter, NeuralRule Rule)
+        public void Render(NeuralRule Rule)
         {
+            this._Rule = Rule;
+            this.Render();
+        }
 
-            Matrix m = this.DataToMatrix(Data, Fields, Filter);
-            this.Render(m, Rule);
-
+        public void Render(Matrix Data)
+        {
+            this._Data = Data;
+            this.Render();
         }
 
         // Prints //
@@ -223,7 +234,12 @@ namespace Equus.Thoroughbred.ManOWar
 
         }
 
-        public void PrintPredictions(DataSet Data, FNodeSet Fields, Predicate Filter, NeuralRule Rule)
+        public void PrintPredictions()
+        {
+            this.PrintPredictions(this._Data);
+        }
+
+        public void PrintPredictions(DataSet Data, FNodeSet Fields, Predicate Filter)
         {
 
             Matrix m = this.DataToMatrix(Data, Fields, Filter);
@@ -232,10 +248,32 @@ namespace Equus.Thoroughbred.ManOWar
         }
 
         // Strings //
-        public string Statistics()
+        public string ShortStatistics()
         {
             return string.Format("NN : Predictions {0} : Nodes {1} : Epochs {2} : MSE {3} : Runtime : {4}",
                 this._Responses.Responses.Count, this._Nodes.Nodes.Count, this._ActualEpochs, Math.Round(this._Responses.MSE, 4), this._RunTime);
+        }
+
+        public string Statistics()
+        {
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("-- Neural Network --");
+            sb.AppendLine(string.Format("Prediction Nodes: {0}", this._Responses.Count));
+            sb.AppendLine(string.Format("Maximum Epochs: {0}", this._MaxEpochs));
+            sb.AppendLine(string.Format("Actual Epochs: {0}", this._ActualEpochs));
+            sb.AppendLine(string.Format("Random Seed: {0}", this._RandomizerSeed));
+            sb.AppendLine(string.Format("Exit SSE: {0}", Math.Round(this._ExistSSE, 5)));
+            sb.AppendLine(string.Format("Actual SSE: {0}", Math.Round(this._Responses.MSE, 5)));
+            sb.AppendLine(string.Format("Runtime: {0}", this._RunTime));
+            sb.AppendLine(string.Format("Reference Nodes: {0}", this._Nodes.ReferenceNodeCount));
+            sb.AppendLine(string.Format("Static Nodes: {0}", this._Nodes.StaticNodeCount));
+            sb.AppendLine(string.Format("Dynamic Nodes: {0}", this._Nodes.DynamicNodeCount));
+            sb.AppendLine(string.Format("Prediction Nodes: {0}", this._Nodes.PredictionNodeCount));
+            sb.AppendLine(string.Format("Training Rule: {0}", this._Rule.ToString()));
+
+            return sb.ToString();
+
         }
 
     }

@@ -47,6 +47,7 @@ namespace Equus.Clydesdale
         public static string Name_MinerLM = "MINER_LM";
         public static string Name_MinerGLM = "MINER_GLM";
         public static string Name_MinerNLM = "MINER_NLM";
+        public static string Name_MinerFFNN = "MINER_FFNN";
 
         private static Dictionary<string, Func<Workspace, HParameterSet, Procedure>> PROCEDURES = new Dictionary<string, Func<Workspace, HParameterSet, Procedure>>(StringComparer.OrdinalIgnoreCase)
         {
@@ -936,5 +937,50 @@ namespace Equus.Clydesdale
 
     }
 
+    public sealed class MinerFFNeural : Procedure
+    {
+
+        public MinerFFNeural(Workspace UseHome, HParameterSet Parameters)
+            : base(SystemProcedures.Name_MinerFFNN, "Fits a linear model using ordinary least squares", UseHome, Parameters)
+        {
+
+            this._ParametersMap.Add("@NAME", new ProcedureParameterMetaData("@NAME!true!expression!The name of the model"));
+            this._ParametersMap.Add("@INPUT", new ProcedureParameterMetaData("@INPUT!true!expressionset!The explanatory variables"));
+            this._ParametersMap.Add("@OUTPUT", new ProcedureParameterMetaData("@OUTPUT!true!expressionset!The model variable"));
+            this._ParametersMap.Add("@DATA", new ProcedureParameterMetaData("@DATA!true!expressionset!The calibration dataset"));
+            this._ParametersMap.Add("@WHERE", new ProcedureParameterMetaData("@WHERE!false!expression!The filter to apply to the data"));
+            this._ParametersMap.Add("@RULE", new ProcedureParameterMetaData("@RULE!false!expression!The training rule; defaults to iRPROP+"));
+            this._ParametersMap.Add("@HIDDEN1", new ProcedureParameterMetaData("@HIDDEN1!false!expressionset!The training rule; defaults to iRPROP+"));
+            string ErrorMessage = null;
+            if (!this.CheckInvoke(out ErrorMessage))
+                throw new Exception(ErrorMessage);
+
+        }
+
+        public override void Invoke()
+        {
+
+            // Get data!!!! //
+            string name = this._Parameters["@NAME"].Expression.Evaluate().valueSTRING;
+            DataSet data = this._Parameters["@DATA"].Data;
+            FNodeSet x = this._Parameters["@INPUT"].ExpressionSet;
+            FNode y = this._Parameters["@OUTPUT"].Expression;
+            FNode w = new FNodeValue(null, new Cell(1D));
+            if (this._Parameters.Exists("@WEIGHT"))
+                w = this._Parameters["@WEIGHT"].Expression;
+
+            // Model //
+            Thoroughbred.ARizenTalent.LinearRegression lm = new Thoroughbred.ARizenTalent.LinearRegression(name, y, x, w);
+            lm.Render(data);
+
+            // Push the model to the home heap //
+            RecordSet rs1 = lm.ParameterData;
+            RecordSet rs2 = lm.ModelData;
+            this.Home.ChunkHeap.Reallocate(rs1.Name, rs1);
+            this.Home.ChunkHeap.Reallocate(rs2.Name, rs2);
+
+        }
+
+    }
 
 }

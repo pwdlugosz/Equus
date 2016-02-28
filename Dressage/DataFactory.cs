@@ -8,6 +8,8 @@ using Equus.HScript;
 using Equus.Calabrese;
 using Equus.QuarterHorse;
 using Equus.Shire;
+using Antlr4.Runtime;
+using Antlr4.Runtime.Tree;
 
 namespace Equus.Dressage
 {
@@ -150,7 +152,100 @@ namespace Equus.Dressage
     public static class ExpressionFactory
     {
 
+        public static FNodeSet ParseFNodeSet(string Text, MemoryStruct LocalHeap, Workspace Home, string Alias, Schema Columns, Register Memory)
+        {
 
+            // Build text stream //
+            AntlrInputStream ais = new AntlrInputStream(Text);
+            HScriptLexer lex = new HScriptLexer(ais);
+
+            // Build token tree //
+            CommonTokenStream cts = new CommonTokenStream(lex);
+            HScriptParser par = new HScriptParser(cts);
+
+            // Build AST //
+            IParseTree tree = par.expression_alias_list();
+            if (tree == null)
+                tree = par.expression_or_wildcard_set();
+            
+            // Visit each node getting the final node //
+            ExpressionVisitor v = new ExpressionVisitor(LocalHeap, Home);
+            v.AddSchema(Alias, Columns, Memory);
+
+            if (tree is HScriptParser.Expression_or_wildcard_setContext)
+            {
+                HScriptParser.Expression_or_wildcard_setContext a = tree as HScriptParser.Expression_or_wildcard_setContext;
+                return VisitorHelper.GetReturnStatement(v, a);
+            }
+            else if (tree is HScriptParser.Expression_alias_listContext)
+            {
+                HScriptParser.Expression_alias_listContext b = tree as HScriptParser.Expression_alias_listContext;
+                return v.ToNodes(b);
+            }
+
+            throw new Exception("Expression is not an expression set: " + Text);
+
+        }
+
+        public static FNodeSet ParseFNodeSet(string Text, Schema Columns)
+        {
+            return ExpressionFactory.ParseFNodeSet(Text, new MemoryStruct(false), new Workspace("HORSE"), "T", Columns, new StaticRegister(Columns));
+        }
+
+        public static FNodeSet ParseFNodeSet(string Text)
+        {
+            return ExpressionFactory.ParseFNodeSet(Text, new Schema());
+        }
+
+        public static FNode ParseFNode(string Text, MemoryStruct LocalHeap, Workspace Home, string Alias, Schema Columns, Register Memory)
+        {
+
+            // Build text stream //
+            AntlrInputStream ais = new AntlrInputStream(Text);
+            HScriptLexer lex = new HScriptLexer(ais);
+
+            // Build token tree //
+            CommonTokenStream cts = new CommonTokenStream(lex);
+            HScriptParser par = new HScriptParser(cts);
+
+            // Build AST //
+            IParseTree tree = par.expression();
+
+            // Visit each node getting the final node //
+            ExpressionVisitor v = new ExpressionVisitor(LocalHeap, Home);
+            v.AddSchema(Alias, Columns, Memory);
+
+            return v.Visit(tree);
+
+        }
+
+        public static FNode ParseFNode(string Text, Schema Columns)
+        {
+            return ExpressionFactory.ParseFNode(Text, new MemoryStruct(false), new Workspace("HORSE"), "T", Columns, new StaticRegister(Columns));
+        }
+
+        public static FNode ParseFNode(string Text)
+        {
+            return ExpressionFactory.ParseFNode(Text, new Schema());
+        }
+
+        public static Predicate ParsePredicate(string Text, MemoryStruct LocalHeap, Workspace Home, string Alias, Schema Columns, Register Memory)
+        {
+            FNode node = ExpressionFactory.ParseFNode(Text, LocalHeap, Home, Alias, Columns, Memory);
+            return new Predicate(node);
+        }
+
+        public static Predicate ParsePredicate(string Text, Schema Columns)
+        {
+            FNode node = ExpressionFactory.ParseFNode(Text, Columns);
+            return new Predicate(node);
+        }
+
+        public static Predicate ParsePredicate(string Text)
+        {
+            FNode node = ExpressionFactory.ParseFNode(Text);
+            return new Predicate(node);
+        }
 
     }
 

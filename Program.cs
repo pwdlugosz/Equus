@@ -13,6 +13,7 @@ using Equus.HScript;
 using Equus.Thoroughbred.ARizenTalent;
 using Equus.Thoroughbred.ManOWar;
 using Equus.Gidran;
+using Equus.Nokota;
 
 /*
  * Mustang : core data libraries
@@ -38,12 +39,93 @@ namespace Equus
             sw.Start();
             long bytes = GC.GetTotalMemory(false);
 
+            RecordSet rs = new RecordSet(new Schema("key int, true_cluster int, value1 double, value2 double, value3 double"));
+
+            Random r = new Random(129);
+            for (int i = 0; i < 1000; i++)
+            {
+
+                if (r.Next() % 2 == 0)
+                {
+                    rs.AddData(i, 0, r.NextDouble() * 500 + 500, r.NextDouble() * 100 + 100, r.NextDouble() * 20 + 20);
+                }
+                else if (r.Next() % 3 == 0)
+                {
+                    rs.AddData(i, 1, r.NextDouble() * 5000 + 5000, r.NextDouble() * 1000 + 1000, r.NextDouble() * 200 + 200);
+                }
+                else
+                {
+                    rs.AddData(i, 2, r.NextDouble() * 50000 + 50000, r.NextDouble() * 10000 + 10000, r.NextDouble() * 2000 + 2000);
+                }
+
+            }
+
+
+            FNodeSet nodes = new FNodeSet();
+            nodes.Add(FNodeFactory.Field(2, CellAffinity.DOUBLE));
+            nodes.Add(FNodeFactory.Field(3, CellAffinity.DOUBLE));
+            nodes.Add(FNodeFactory.Field(4, CellAffinity.DOUBLE));
+
+            Thoroughbred.Seabiscut.RowCluster clus = new Thoroughbred.Seabiscut.RowCluster(rs, Predicate.TrueForAll, nodes, 3);
+            clus.DistanceMeasure = Thoroughbred.Seabiscut.RowClusterRuleFactory.Gauss;
+            clus.Render();
+            Console.WriteLine(clus.Statistics());
+
+            FNodeSet selects = new FNodeSet(rs.Columns);
+            RecordSet a_to_e = clus.Extend(rs, nodes, selects, Predicate.TrueForAll);
+
+            a_to_e.Print(10);
+
+            FNodeSet keys = new FNodeSet();
+            keys.Add("EXPECTED", FNodeFactory.Field(a_to_e.Columns, "CLUSTER_ID"));
+            keys.Add("ACTUAL", FNodeFactory.Field(a_to_e.Columns, "TRUE_CLUSTER"));
+            AggregateSet aggs = new AggregateSet();
+            aggs.Add(new AggregateCountAll(new FNodeValue(null, new Cell(1))), "COUNT_OF");
+
+            RecordSet a_to_e_summary = AggregatePlan.Render(a_to_e, Predicate.TrueForAll, keys, aggs);
+            a_to_e_summary.Print();
+
+
             //Program.CommandRun(args);
 
             //Workspace space = new Workspace(@"C:\Users\pwdlu_000\Documents\Equus\X_Data\Temp_Database\");
             //HScriptProcessor runner = new HScriptProcessor(space);
             //string script = File.ReadAllText(@"C:\Users\pwdlu_000\Documents\Equus\Equus\HScript\TestScript.txt");
             //runner.Execute(script);
+
+            //RecordSet XORGateTest = new RecordSet("X1 DOUBLE, X2 DOUBLE, Y_XOR DOUBLE, Y_AND DOUBLE, Y_OR DOUBLE, Y_NOXOR DOUBLE");
+            //XORGateTest.AddData(0D, 0D, 0D, 0D, 0D, 1D);
+            //XORGateTest.AddData(1D, 0D, 1D, 0D, 1D, 0D);
+            //XORGateTest.AddData(0D, 1D, 1D, 0D, 1D, 0D);
+            //XORGateTest.AddData(1D, 1D, 0D, 1D, 1D, 1D);
+
+            //FNodeSet inputs = Dressage.ExpressionFactory.ParseFNodeSet("X1,X2", XORGateTest.Columns);
+            //FNodeSet outputs = Dressage.ExpressionFactory.ParseFNodeSet("Y_XOR", XORGateTest.Columns);
+
+            //NeuralNetworkFactory factory = new NeuralNetworkFactory(XORGateTest, Predicate.TrueForAll);
+            //factory.AddDataLayer(true, inputs);
+            //factory.AddHiddenLayer(true, 2, Numerics.ScalarFunctionFactory.Select("BinarySigmoid"), new NodeReductionLinear());
+            //factory.AddPredictionLayer(outputs, Numerics.ScalarFunctionFactory.Select("BinarySigmoid"), new NodeReductionLinear());
+            //factory.DefaultRule = "bprop";
+            //NeuralNetwork net = factory.Construct();
+
+
+            //net.Seed = 128;
+            //net.Epochs = 10000;
+            ////NeuralRule rule = RuleFactory.Construct("bprop", net.Responses);
+            ////NeuralRule rule = RuleFactory.Construct("rprop", net.Responses);
+            ////NeuralRule rule = RuleFactory.Construct("rprop+", net.Responses);
+            ////NeuralRule rule = RuleFactory.Construct("rprop-", net.Responses);
+            ////NeuralRule rule = RuleFactory.Construct("irprop+", net.Responses);
+            ////NeuralRule rule = RuleFactory.Construct("irprop-", net.Responses);
+            ////NeuralRule rule = RuleFactory.Construct("mprop", net.Responses);
+            ////NeuralRule rule = RuleFactory.Construct("qprop", net.Responses);
+            ////NeuralRule rule = RuleFactory.Construct("hprop", net.Responses);
+
+            //net.Render();
+
+            //net.PrintPredictions();
+            //Console.WriteLine(net.Statistics());
 
             bytes = GC.GetTotalMemory(false) - bytes;
             Console.WriteLine("Disk Reads: {0} ::::: Disk Writes: {1}", BinarySerializer.DiskReads, BinarySerializer.DiskWrites);
@@ -325,34 +407,34 @@ namespace Equus
         {
 
 
-            NeuralNetworkFactory factory = new NeuralNetworkFactory(Numerics.ScalarFunctionFactory.Select("BinarySigmoid"), new NodeReductionLinear());
-            factory.AddDataLayer(true, new Key(0, 1));
-            factory.AddHiddenLayer(true, 2);
-            factory.AddPredictionLayer(new Key(2));
-            NeuralNetwork net = factory.Construct();
+            //NeuralNetworkFactory factory = new NeuralNetworkFactory(Numerics.ScalarFunctionFactory.Select("BinarySigmoid"), new NodeReductionLinear());
+            //factory.AddDataLayer(true, new Key(0, 1));
+            //factory.AddHiddenLayer(true, 2);
+            //factory.AddPredictionLayer(new Key(2));
+            //NeuralNetwork net = factory.Construct();
 
-            Matrix m = new Matrix(4, 3);
-            m[0] = new double[] { 0D, 0D, 0D };
-            m[1] = new double[] { 1D, 0D, 1D };
-            m[2] = new double[] { 0D, 1D, 1D };
-            m[3] = new double[] { 1D, 1D, 0D };
+            //Matrix m = new Matrix(4, 3);
+            //m[0] = new double[] { 0D, 0D, 0D };
+            //m[1] = new double[] { 1D, 0D, 1D };
+            //m[2] = new double[] { 0D, 1D, 1D };
+            //m[3] = new double[] { 1D, 1D, 0D };
 
-            net.Seed = 128;
-            net.Epochs = 10000;
-            NeuralRule rule = RuleFactory.Construct("bprop", net.Responses);
-            //NeuralRule rule = RuleFactory.Construct("rprop", net.Responses);
-            //NeuralRule rule = RuleFactory.Construct("rprop+", net.Responses);
-            //NeuralRule rule = RuleFactory.Construct("rprop-", net.Responses);
-            //NeuralRule rule = RuleFactory.Construct("irprop+", net.Responses);
-            //NeuralRule rule = RuleFactory.Construct("irprop-", net.Responses);
-            //NeuralRule rule = RuleFactory.Construct("mprop", net.Responses);
-            //NeuralRule rule = RuleFactory.Construct("qprop", net.Responses);
-            //NeuralRule rule = RuleFactory.Construct("hprop", net.Responses);
+            //net.Seed = 128;
+            //net.Epochs = 10000;
+            //NeuralRule rule = RuleFactory.Construct("bprop", net.Responses);
+            ////NeuralRule rule = RuleFactory.Construct("rprop", net.Responses);
+            ////NeuralRule rule = RuleFactory.Construct("rprop+", net.Responses);
+            ////NeuralRule rule = RuleFactory.Construct("rprop-", net.Responses);
+            ////NeuralRule rule = RuleFactory.Construct("irprop+", net.Responses);
+            ////NeuralRule rule = RuleFactory.Construct("irprop-", net.Responses);
+            ////NeuralRule rule = RuleFactory.Construct("mprop", net.Responses);
+            ////NeuralRule rule = RuleFactory.Construct("qprop", net.Responses);
+            ////NeuralRule rule = RuleFactory.Construct("hprop", net.Responses);
 
-            net.Render(m, rule);
+            //net.Render();
 
-            net.PrintPredictions(m);
-            Console.WriteLine(net.Statistics());
+            //net.PrintPredictions(m);
+            //Console.WriteLine(net.Statistics());
 
 
         }

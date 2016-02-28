@@ -253,16 +253,27 @@ namespace Equus.Horse
         /// <summary>
         /// Creates a key with a certain number of ascending elements
         /// </summary>
-        /// <param name="N">The upper bound non-inclusive</param>
+        /// <param name="StartAt">The starting index of the key</param>
+        /// <param name="Count">The upper bound non-inclusive</param>
         /// <returns>Key</returns>
-        public static Key Build(int N)
+        public static Key Build(int StartAt, int Count)
         {
             Key k = new Key();
-            for (int i = 0; i < N; i++)
+            for (int i = StartAt; i < StartAt + Count; i++)
             {
                 k.Add(i);
             }
             return k;
+        }
+
+        /// <summary>
+        /// Creates a key with a certain number of ascending elements
+        /// </summary>
+        /// <param name="Count">The upper bound non-inclusive</param>
+        /// <returns>Key</returns>
+        public static Key Build(int Count)
+        {
+            return Build(0, Count);
         }
 
         /// <summary>
