@@ -39,51 +39,56 @@ namespace Equus
             sw.Start();
             long bytes = GC.GetTotalMemory(false);
 
-            RecordSet rs = new RecordSet(new Schema("key int, true_cluster int, value1 double, value2 double, value3 double"));
+            Workspace space = new Workspace(@"C:\Users\pwdlu_000\Documents\Equus\X_Data\Temp_Database\");
+            HScriptProcessor runner = new HScriptProcessor(space);
+            string script = File.ReadAllText(@"C:\Users\pwdlu_000\Documents\Equus\Equus\HScript\TestScript.txt");
+            runner.Execute(script);
 
-            Random r = new Random(129);
-            for (int i = 0; i < 1000; i++)
-            {
+            //RecordSet rs = new RecordSet(new Schema("key int, true_cluster int, value1 double, value2 double, value3 double"));
 
-                if (r.Next() % 2 == 0)
-                {
-                    rs.AddData(i, 0, r.NextDouble() * 500 + 500, r.NextDouble() * 100 + 100, r.NextDouble() * 20 + 20);
-                }
-                else if (r.Next() % 3 == 0)
-                {
-                    rs.AddData(i, 1, r.NextDouble() * 5000 + 5000, r.NextDouble() * 1000 + 1000, r.NextDouble() * 200 + 200);
-                }
-                else
-                {
-                    rs.AddData(i, 2, r.NextDouble() * 50000 + 50000, r.NextDouble() * 10000 + 10000, r.NextDouble() * 2000 + 2000);
-                }
+            //Random r = new Random(129);
+            //for (int i = 0; i < 1000; i++)
+            //{
 
-            }
+            //    if (r.Next() % 2 == 0)
+            //    {
+            //        rs.AddData(i, 0, r.NextDouble() * 500 + 500, r.NextDouble() * 100 + 100, r.NextDouble() * 20 + 20);
+            //    }
+            //    else if (r.Next() % 3 == 0)
+            //    {
+            //        rs.AddData(i, 1, r.NextDouble() * 5000 + 5000, r.NextDouble() * 1000 + 1000, r.NextDouble() * 200 + 200);
+            //    }
+            //    else
+            //    {
+            //        rs.AddData(i, 2, r.NextDouble() * 50000 + 50000, r.NextDouble() * 10000 + 10000, r.NextDouble() * 2000 + 2000);
+            //    }
+
+            //}
 
 
-            FNodeSet nodes = new FNodeSet();
-            nodes.Add(FNodeFactory.Field(2, CellAffinity.DOUBLE));
-            nodes.Add(FNodeFactory.Field(3, CellAffinity.DOUBLE));
-            nodes.Add(FNodeFactory.Field(4, CellAffinity.DOUBLE));
+            //FNodeSet nodes = new FNodeSet();
+            //nodes.Add(FNodeFactory.Field(2, CellAffinity.DOUBLE));
+            //nodes.Add(FNodeFactory.Field(3, CellAffinity.DOUBLE));
+            //nodes.Add(FNodeFactory.Field(4, CellAffinity.DOUBLE));
 
-            Thoroughbred.Seabiscut.RowCluster clus = new Thoroughbred.Seabiscut.RowCluster(rs, Predicate.TrueForAll, nodes, 3);
-            clus.DistanceMeasure = Thoroughbred.Seabiscut.RowClusterRuleFactory.Gauss;
-            clus.Render();
-            Console.WriteLine(clus.Statistics());
+            //Thoroughbred.Seabiscut.RowCluster clus = new Thoroughbred.Seabiscut.RowCluster("Test1", rs, Predicate.TrueForAll, nodes, 3);
+            //clus.DistanceMeasure = Thoroughbred.Seabiscut.RowClusterRuleFactory.Gauss;
+            //clus.Render();
+            //Console.WriteLine(clus.Statistics());
 
-            FNodeSet selects = new FNodeSet(rs.Columns);
-            RecordSet a_to_e = clus.Extend(rs, nodes, selects, Predicate.TrueForAll);
+            //FNodeSet selects = new FNodeSet(rs.Columns);
+            //RecordSet a_to_e = clus.Extend(rs, nodes, selects, Predicate.TrueForAll);
 
-            a_to_e.Print(10);
+            //a_to_e.Print(10);
 
-            FNodeSet keys = new FNodeSet();
-            keys.Add("EXPECTED", FNodeFactory.Field(a_to_e.Columns, "CLUSTER_ID"));
-            keys.Add("ACTUAL", FNodeFactory.Field(a_to_e.Columns, "TRUE_CLUSTER"));
-            AggregateSet aggs = new AggregateSet();
-            aggs.Add(new AggregateCountAll(new FNodeValue(null, new Cell(1))), "COUNT_OF");
+            //FNodeSet keys = new FNodeSet();
+            //keys.Add("EXPECTED", FNodeFactory.Field(a_to_e.Columns, "CLUSTER_ID"));
+            //keys.Add("ACTUAL", FNodeFactory.Field(a_to_e.Columns, "TRUE_CLUSTER"));
+            //AggregateSet aggs = new AggregateSet();
+            //aggs.Add(new AggregateCountAll(new FNodeValue(null, new Cell(1))), "COUNT_OF");
 
-            RecordSet a_to_e_summary = AggregatePlan.Render(a_to_e, Predicate.TrueForAll, keys, aggs);
-            a_to_e_summary.Print();
+            //RecordSet a_to_e_summary = AggregatePlan.Render(a_to_e, Predicate.TrueForAll, keys, aggs);
+            //a_to_e_summary.Print();
 
 
             //Program.CommandRun(args);

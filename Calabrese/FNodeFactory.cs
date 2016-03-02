@@ -53,6 +53,11 @@ namespace Equus.Calabrese
             return new FNodeValue(null, new Cell(Value));
         }
 
+        public static FNode Value(Cell Value)
+        {
+            return new FNodeValue(null, Value);
+        }
+
         // Fields //
         public static FNode Field(int Index, CellAffinity Type, int Size, Register Memory)
         {

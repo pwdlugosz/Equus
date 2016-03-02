@@ -119,6 +119,12 @@ namespace Equus.QuarterHorse
             return Render(Data, Predicate.TrueForAll, Fields, long.MaxValue);
         }
 
+        public static RecordSet Render(DataSet Data, Predicate Where, Key Fields, long Limit)
+        {
+            FNodeSet nodes = new FNodeSet(Data.Columns, Fields);
+            return Render(Data, Where, nodes, Limit);
+        }
+
     }
 
     public sealed class StagedReadName : CommandPlan

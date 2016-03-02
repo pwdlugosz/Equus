@@ -9,15 +9,17 @@ using Equus.Andalusian;
 using Equus.QuarterHorse;
 using Equus.Nokota;
 using Equus.Shire;
+using Equus.Gidran;
 
 namespace Equus.Thoroughbred.Seabiscut
 {
 
-    public sealed class RowCluster
+    public sealed class RowCluster : Model
     {
 
         private RowClusterRule _rule;
         private RecordSet _means;
+        private RecordSet _stats;
         private RowClusterInitializer _initializer;
         private DataSet _data;
         private Predicate _where;
@@ -29,8 +31,10 @@ namespace Equus.Thoroughbred.Seabiscut
         private int _actual_itterations = -1;
         private double _exit_condition = 0.005;
         private FNode _weight;
+        private CellVector _within_variance;
+        private CellVector _between_variance;
 
-        public RowCluster(DataSet Data, Predicate Where, FNodeSet Fields, FNode Weight, int Count)
+        public RowCluster(string Name, DataSet Data, Predicate Where, FNodeSet Fields, FNode Weight, int Count)
         {
             this._data = Data;
             this._where = Where;
@@ -40,10 +44,11 @@ namespace Equus.Thoroughbred.Seabiscut
             this._initializer = new RowClusterInitializerSpectrum();
             this._means = this._initializer.Initialize(Data, Where, Fields, Count);
             this._weight = Weight;
+            this.Name = Name;
         }
 
-        public RowCluster(DataSet Data, Predicate Where, FNodeSet Fields, int Count)
-            : this(Data, Where, Fields, FNodeFactory.Value(1D), Count)
+        public RowCluster(string Name, DataSet Data, Predicate Where, FNodeSet Fields, int Count)
+            : this(Name, Data, Where, Fields, FNodeFactory.Value(1D), Count)
         {
         }
 
@@ -78,8 +83,30 @@ namespace Equus.Thoroughbred.Seabiscut
             set { this._rule = value; }
         }
 
+        public override string Name
+        {
+            get;
+            protected set;
+        }
+
+        public double WithinVariance
+        {
+            get
+            {
+                return CellVector.Sum(this._within_variance).DOUBLE;
+            }
+        }
+
+        public double BetweenVariance
+        {
+            get
+            {
+                return CellVector.Sum(this._between_variance).DOUBLE;
+            }
+        }
+
         // Methods //
-        public void Render()
+        public override void Render()
         {
 
             // Loop over each itteration //
@@ -98,6 +125,9 @@ namespace Equus.Thoroughbred.Seabiscut
 
             }
 
+            // Run stats //
+            this.CalculateVariance();
+
         }
 
         private bool ItterateOnce()
@@ -112,27 +142,48 @@ namespace Equus.Thoroughbred.Seabiscut
             }
             keys.Add("CLUSTER_ID", n);
 
-            // Create the aggregate variables //
+            // Create the aggregate//
             AggregateSet set = new AggregateSet();
+
+            // Add a counter to the aggregate //
+            set.Add(new AggregateSum(FNodeFactory.Value(1D)), "CLUSTER_ELEMENT_COUNT");
+
+            // load the aggregate with the mean aggregates //
             for (int i = 0; i < this._fields.Count; i++)
             {
                 set.Add(new AggregateAverage(this._fields[i].CloneOfMe()), this._fields.Alias(i));
             }
 
+            // Load the aggregate with the variance aggregates //
+            for (int i = 0; i < this._fields.Count; i++)
+            {
+                set.Add(new AggregateVarianceP(this._fields[i].CloneOfMe()), "VAR_" + this._fields.Alias(i));
+            }
+
             // Run the aggregate; this is basically a horse aggregate step with the cluster node mapping as the key, and averaging as the value
             RecordSet rs = AggregatePlan.Render(this._data, this._where, keys, set);
+
+            // Need to chop up the recordset we just created //
+            Key mean_keeper = Key.Build(this._means.Columns.Count);
+            RecordSet means = FastReadPlan.Render(rs, Predicate.TrueForAll, mean_keeper, long.MaxValue);
+            Key stat_keeper = new Key(0,1); // keep the id and the count
+            for (int i = mean_keeper.Count; i < rs.Columns.Count; i++)
+            {
+                stat_keeper.Add(i);
+            }
+            this._stats = FastReadPlan.Render(rs, Predicate.TrueForAll, stat_keeper, long.MaxValue);
             
             // Check for cluster misses; cluster misses occur when no node maps to a cluster correctly //
-            if (rs.Count != this._means.Count)
+            if (means.Count != this._means.Count)
             {
-                this.HandleNullCluster(rs);
+                this.HandleNullCluster(means);
             }
 
             // Compare the changes between itterations
-            double change = this.CompareChanges(this._means, rs);
+            double change = this.CompareChanges(this._means, means);
             
             // Set the means to the newly calculated means //
-            this._means = rs;
+            this._means = means;
             
             // Return a boolean indicating if we failed or not
             return change < this._exit_condition;
@@ -191,7 +242,40 @@ namespace Equus.Thoroughbred.Seabiscut
 
         }
 
-        public void Extend(RecordWriter Output, DataSet Data, FNodeSet ClusterVariables, FNodeSet OtherKeepers, Predicate Where)
+        private void CalculateVariance()
+        {
+
+            if (this._means.Count != this._stats.Count)
+                return;
+
+            this._within_variance = new CellVector(this._count, CellValues.ZERO_DOUBLE);
+            this._between_variance = new CellVector(this._count, CellValues.ZERO_DOUBLE);
+            CellVector m = new CellVector(this._count, CellValues.ZERO_DOUBLE);
+            CellVector n = new CellVector(this._count, CellValues.ZERO_DOUBLE);
+
+            for (int i = 0; i < this._means.Count; i++)
+            {
+
+                for (int j = 2; j < this._means.Columns.Count; j++)
+                {
+                    this._within_variance[j - 2] += this._stats[i][j] * this._stats[i][1];
+                    n[j - 2] += this._means[i][1];
+                    m[j - 2] += this._means[i][j] * this._means[i][1];
+                    this._between_variance[j - 2] += this._means[i][j] * this._means[i][j] * this._means[i][1];
+                }
+
+            }
+
+            for (int i = 0; i < this._between_variance.Count; i++)
+            {
+                m[i] = m[i] / n[i];
+                this._between_variance[i] = (this._between_variance[i] / n[i] - m[i] * m[i]) * n[i];
+            }
+
+            Console.WriteLine(this._within_variance);
+        }
+
+        public override void Extend(RecordWriter Output, DataSet Data, FNodeSet ClusterVariables, FNodeSet OtherKeepers, Predicate Where)
         {
 
             // Check that the ClusterVariable count matches the internal node set count //
@@ -212,7 +296,7 @@ namespace Equus.Thoroughbred.Seabiscut
 
         }
 
-        public RecordSet Extend(DataSet Data, FNodeSet ClusterVariables, FNodeSet OtherKeepers, Predicate Where)
+        public override RecordSet Extend(DataSet Data, FNodeSet ClusterVariables, FNodeSet OtherKeepers, Predicate Where)
         {
 
             // Check that the ClusterVariable count matches the internal node set count //
@@ -241,7 +325,7 @@ namespace Equus.Thoroughbred.Seabiscut
 
         }
 
-        public Table Extend(string Dir, string Name, DataSet Data, FNodeSet ClusterVariables, FNodeSet OtherKeepers, Predicate Where)
+        public override Table Extend(string Dir, string Name, DataSet Data, FNodeSet ClusterVariables, FNodeSet OtherKeepers, Predicate Where)
         {
 
             // Check that the ClusterVariable count matches the internal node set count //
@@ -269,18 +353,29 @@ namespace Equus.Thoroughbred.Seabiscut
 
         }
 
-        public string Statistics()
+        public override string Statistics()
         {
-
+            double b = this.BetweenVariance;
+            double w = this.WithinVariance;
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("Row_Cluster");
+            sb.AppendLine("Row_Cluster: " + this.Name);
             sb.AppendLine("Dimensions: " + this._fields.Count.ToString());
             sb.AppendLine("Clusters: " + this._count.ToString());
             sb.AppendLine("Actual Itterations: " + this._actual_itterations.ToString());
             sb.AppendLine("Zero Match Fails: " + this._zero_fail_counts.ToString());
+            sb.AppendLine("Within Variance: " + Math.Round(w, 3));
+            sb.AppendLine("Between Variance: " + Math.Round(b, 3));
+            sb.AppendLine("R-Square: " + Math.Round(1 - w / (w + b), 3));
+            sb.AppendLine("PSeudo-F: " + Math.Round(b / w, 3));
             sb.AppendLine("Centroids:");
             sb.AppendLine(this._means.Columns.ToNameString());
             foreach (Record r in this._means._Cache)
+            {
+                sb.AppendLine(r.ToString('\t'));
+            }
+            sb.AppendLine("Variance:");
+            sb.AppendLine(this._stats.Columns.ToNameString());
+            foreach (Record r in this._stats._Cache)
             {
                 sb.AppendLine(r.ToString('\t'));
             }
@@ -306,14 +401,12 @@ namespace Equus.Thoroughbred.Seabiscut
             int current_index = 0;
             double min_distance = double.MaxValue;
             int min_index = 0;
-            //Console.WriteLine("------------------------------------------------");
             foreach (Record r in Means._Cache)
             {
 
-                Record t = Record.Subrecord(r, 1, r.Count - 1); // the first value of the mean record is always the key
+                Record t = Record.Subrecord(r, 2, r.Count - 2); // the first value of the mean record is always the key, second is the count
 
                 current_distance = this.Distance(Value, t);
-                //Console.WriteLine("Current {0} : Min {1} | Cur {2} : Min {3}", current_distance, min_distance, current_index, min_index);
                 if (current_distance < min_distance)
                 {
                     min_distance = current_distance;
@@ -442,6 +535,7 @@ namespace Equus.Thoroughbred.Seabiscut
         {
 
             AggregateSet set = new AggregateSet();
+            set.Add(new AggregateSum(FNodeFactory.Value(1D)), "CLUSTER_ELEMENT_COUNT");
             for (int i = 0; i < Fields.Count; i++)
             {
                 set.Add(new AggregateAverage(Fields[i].CloneOfMe()), Fields.Alias(i));
@@ -491,7 +585,7 @@ namespace Equus.Thoroughbred.Seabiscut
             RecordSet rs2 = AggregatePlan.Render(Data, Where, new FNodeSet(), set2);
 
             // Create the output means table //
-            RecordSet rs = new RecordSet(Schema.Join(new Schema("key int"), rs1.Columns));
+            RecordSet rs = new RecordSet(Schema.Join(new Schema("key int, count double"), rs1.Columns));
 
             // Fill in the gaps //
             for (int i = 0; i < Clusters; i++)
@@ -501,6 +595,7 @@ namespace Equus.Thoroughbred.Seabiscut
                 {
                     RecordBuilder rb = new RecordBuilder();
                     rb.Add(0);
+                    rb.Add(0D);
                     rb.Add(rs1[0]);
                     rs.Add(rb.ToRecord());
                 }
@@ -508,6 +603,7 @@ namespace Equus.Thoroughbred.Seabiscut
                 {
                     RecordBuilder rb = new RecordBuilder();
                     rb.Add(Clusters - 1);
+                    rb.Add(0D);
                     rb.Add(rs2[0]);
                     rs.Add(rb.ToRecord());
                 }
@@ -516,6 +612,7 @@ namespace Equus.Thoroughbred.Seabiscut
 
                     RecordBuilder rb = new RecordBuilder();
                     rb.Add(i);
+                    rb.Add(0D);
                     for (int j = 0; j < rs1.Columns.Count; j++)
                     {
                         double clus = (double)Clusters;

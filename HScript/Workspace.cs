@@ -8,6 +8,7 @@ using Equus.Calabrese;
 using Equus.Shire;
 using Equus.QuarterHorse;
 using Equus.HScript;
+using Equus.Thoroughbred;
 
 namespace Equus.HScript
 {
@@ -25,6 +26,7 @@ namespace Equus.HScript
         private Heap<string> _Connections;
         private Communicator _IO;
         private Dictionary<string, DataSet> _OpenData;
+        private Heap<Model> _Models;
         
         public Workspace(string TempDirectory, Communicator UseIO)
         {
@@ -36,6 +38,7 @@ namespace Equus.HScript
             this._IO = UseIO;
             this._Lambdas = new Heap<Lambda>();
             this._OpenData = new Dictionary<string, DataSet>(StringComparer.OrdinalIgnoreCase);
+            this._Models = new Heap<Model>();
             
             // Add the temp connections //
             this._Connections.Allocate(TEMP_DB_ALIAS, TempDirectory);
@@ -71,6 +74,11 @@ namespace Equus.HScript
             {
                 return this._Lambdas;
             }
+        }
+
+        public Heap<Model> Models
+        {
+            get { return this._Models; }
         }
 
         public string TempSpace

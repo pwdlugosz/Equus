@@ -58,6 +58,17 @@ namespace Equus.Calabrese
         {
         }
 
+        public FNodeSet(Schema Columns, Key Fields)
+            : this()
+        {
+
+            this.AllowNameDotName = false;
+            for (int i = 0; i < Fields.Count; i++)
+            {
+                this.Add(Columns.ColumnName(Fields[i]), new FNodeFieldRef(null, Fields[i], Columns.ColumnAffinity(Fields[i]), Columns.ColumnSize(Fields[i]), null));
+            }
+        }
+
         // Properties //
         public int Count
         {

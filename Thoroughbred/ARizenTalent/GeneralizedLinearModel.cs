@@ -17,8 +17,8 @@ namespace Equus.Thoroughbred.ARizenTalent
 
         private Lambda _Link;
 
-        public GeneralizedLinearModel(string Name, FNode Expected, FNodeSet Actual, FNode Weight, Lambda LinkFunction)
-            : base(Name, Expected, Actual, Weight)
+        public GeneralizedLinearModel(string Name, DataSet Data, Predicate Where, FNode Expected, FNodeSet Actual, FNode Weight, Lambda LinkFunction)
+            : base(Name, Data, Where, Expected, Actual, Weight)
         {
 
             int val = IsCorrectLink(LinkFunction);
@@ -30,8 +30,8 @@ namespace Equus.Thoroughbred.ARizenTalent
  
         }
 
-        public GeneralizedLinearModel(string Name, FNode Expected, FNodeSet Actual, Lambda LinkFunction)
-            : this(Name, Expected, Actual, FNodeFactory.Value(1D), LinkFunction)
+        public GeneralizedLinearModel(string Name, DataSet Data, Predicate Where, FNode Expected, FNodeSet Actual, Lambda LinkFunction)
+            : this(Name, Data, Where, Expected, Actual, FNodeFactory.Value(1D), LinkFunction)
         {
         }
 
@@ -70,14 +70,14 @@ namespace Equus.Thoroughbred.ARizenTalent
         /// </summary>
         /// <param name="Data">The data to calibrate the model with</param>
         /// <param name="Where">The filter to apply to the calibration</param>
-        public override void Render(DataSet Data, Predicate Where)
+        public override void Render()
         {
 
             // Set up support variables //
             bool converge = false;
 
             // Get an interim beta //
-            CellVector interim_beta = this.OrdinaryLeastSquares(Data, Where);
+            CellVector interim_beta = this.OrdinaryLeastSquares();
             
             // Main Loop //
             for (int i = 0; i < this.MaximumIterations; i++)
@@ -107,7 +107,7 @@ namespace Equus.Thoroughbred.ARizenTalent
                 this._Support = new CellVector(this.ParameterCount, CellValues.ZERO_DOUBLE);
 
                 // Loop through all records in the table //
-                RecordReader rr = Data.OpenReader(Where);
+                RecordReader rr = this._data.OpenReader(this._where);
                 while (!rr.EndOfData)
                 {
 
@@ -168,20 +168,39 @@ namespace Equus.Thoroughbred.ARizenTalent
                 this._ActualIterations = this.MaximumIterations + 1;
 
             // Set up the SSE //
-            this.BuildSS(Data, Where);
+            this.BuildSS(this._data, this._where);
 
         }
 
-        public override void PartitionedRender(DataSet Data, Predicate Where, int Partitions)
+        public override void PartitionedRender(int Partitions)
         {
             throw new NotImplementedException();
+        }
+
+        public override FNode ModelExpected(FNodeSet Inputs)
+        {
+
+            if (Inputs.Count != this._XValue.Count)
+                throw new ArgumentException("The inputs passed are not the same size as the model inputs");
+
+            FNode n = Inputs.Nodes.First().CloneOfMe() * FNodeFactory.Value(this.Beta[0]);
+
+            for (int i = 1; i < Inputs.Count; i++)
+            {
+
+                n += Inputs[i].CloneOfMe() * FNodeFactory.Value(this.Beta[i]);
+
+            }
+
+            return this._Link.Bind(new List<FNode>() { n });
+
         }
 
         /// <summary>
         /// Returns a string a summarizing the key statitics of the model
         /// </summary>
         /// <returns>A string summarizing the model</returns>
-        public override string ToString()
+        public override string Statistics()
         {
 
             /*

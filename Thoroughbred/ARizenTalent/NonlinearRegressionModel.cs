@@ -20,8 +20,8 @@ namespace Equus.Thoroughbred.ARizenTalent
         private double _down_sclale = 0.50;
         private double _up_scale = 1.20;
 
-        public NonlinearRegressionModel(string Name, FNode YValue, FNode Equation, FNode Weight)
-            : base(Name, YValue, null, Weight)
+        public NonlinearRegressionModel(string Name, DataSet Data, Predicate Where, FNode YValue, FNode Equation, FNode Weight)
+            : base(Name, Data, Where, YValue, null, Weight)
         {
             
             // Save the equation //
@@ -44,8 +44,8 @@ namespace Equus.Thoroughbred.ARizenTalent
 
         }
 
-        public NonlinearRegressionModel(string Name, FNode YValue, FNode Equation)
-            : this(Name, YValue, Equation, FNodeFactory.Value(1D))
+        public NonlinearRegressionModel(string Name, DataSet Data, Predicate Where, FNode YValue, FNode Equation)
+            : this(Name, Data, Where, YValue, Equation, FNodeFactory.Value(1D))
         {
         }
 
@@ -111,7 +111,7 @@ namespace Equus.Thoroughbred.ARizenTalent
             }
         }
 
-        public override void Render(DataSet Data, Predicate Where)
+        public override void Render()
         {
 
             // Check that beta has been initialized //
@@ -139,7 +139,7 @@ namespace Equus.Thoroughbred.ARizenTalent
 
                 // Construct the design matrix //
                 this._NonNullObservations
-                    = RegressionModel.BuildDesignSupport(Data.OpenReader(Where), x, y, this._WValue, this._Design, this._Support, this.BoundEquation, out this._SSE);
+                    = RegressionModel.BuildDesignSupport(this._data.OpenReader(this._where), x, y, this._WValue, this._Design, this._Support, this.BoundEquation, out this._SSE);
                 
                 // Create lambda x I or Trace(Design) * lambda //
                 CellMatrix ILambda;
@@ -182,11 +182,11 @@ namespace Equus.Thoroughbred.ARizenTalent
                 this._ActualIterations = this.MaximumIterations + 1;
 
             // Calculate the SSE //
-            this.BuildSS(Data, Where);
+            this.BuildSS(this._data, this._where);
 
         }
 
-        public override void PartitionedRender(DataSet Data, Predicate Where, int Partitions)
+        public override void PartitionedRender(int Partitions)
         {
             throw new NotImplementedException();
         }
@@ -263,11 +263,23 @@ namespace Equus.Thoroughbred.ARizenTalent
 
         }
 
+        public override FNode ModelExpected(FNodeSet Inputs)
+        {
+            return ModelExpected(Inputs.Nodes.First());
+        }
+
+        public FNode ModelExpected(FNode Equation)
+        {
+
+            return NonlinearRegressionModel.BindNode(Equation, this._Beta, this._map);
+
+        }
+
         /// <summary>
         /// Returns a string a summarizing the key statitics of the model
         /// </summary>
         /// <returns>A string summarizing the model</returns>
-        public override string ToString()
+        public override string Statistics()
         {
 
             /*

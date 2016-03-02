@@ -230,6 +230,7 @@
     <Compile Include="Thoroughbred\ManOWar\NodeAnalytics.cs" />
     <Compile Include="Thoroughbred\ManOWar\NodeLink.cs" />
     <Compile Include="Thoroughbred\ManOWar\SimpleNetwork.cs" />
+    <Compile Include="Thoroughbred\Model.cs" />
     <Compile Include="Thoroughbred\Seabiscut\RowCluster.cs" />
     <Compile Include="_Notes\Notes.cs" />
   </ItemGroup>

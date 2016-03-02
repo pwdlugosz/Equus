@@ -47,6 +47,7 @@ namespace Equus.Clydesdale
         public static string Name_MinerLM = "MINER_LM";
         public static string Name_MinerGLM = "MINER_GLM";
         public static string Name_MinerNLM = "MINER_NLM";
+        public static string Name_MinerRC = "MINER_ROWCLUS";
         public static string Name_MinerFFNN = "MINER_FFNN";
 
         private static Dictionary<string, Func<Workspace, HParameterSet, Procedure>> PROCEDURES = new Dictionary<string, Func<Workspace, HParameterSet, Procedure>>(StringComparer.OrdinalIgnoreCase)
@@ -79,6 +80,7 @@ namespace Equus.Clydesdale
             { SystemProcedures.Name_MinerLM, (home, parameters) => { return new MinerLinearModel(home, parameters);}},
             { SystemProcedures.Name_MinerGLM, (home, parameters) => { return new MinerGeneralizedLinearModel(home, parameters);}},
             { SystemProcedures.Name_MinerNLM, (home, parameters) => { return new MinerNonLinearModel(home, parameters);}},
+            { SystemProcedures.Name_MinerRC, (home, parameters) => { return new MinerRowCluster(home, parameters);}},
 
         };
 
@@ -789,6 +791,7 @@ namespace Equus.Clydesdale
             this._ParametersMap.Add("@OUTPUT", new ProcedureParameterMetaData("@OUTPUT!true!expression!The model variable"));
             this._ParametersMap.Add("@DATA", new ProcedureParameterMetaData("@DATA!true!expressionset!The calibration dataset"));
             this._ParametersMap.Add("@WEIGHT", new ProcedureParameterMetaData("@WEIGHT!false!expression!The weight variable"));
+            this._ParametersMap.Add("@WHERE", new ProcedureParameterMetaData("@WEIGHT!false!expression!The data filter"));
             string ErrorMessage = null;
             if (!this.CheckInvoke(out ErrorMessage))
                 throw new Exception(ErrorMessage);
@@ -806,16 +809,20 @@ namespace Equus.Clydesdale
             FNode w = new FNodeValue(null, new Cell(1D));
             if (this._Parameters.Exists("@WEIGHT"))
                 w = this._Parameters["@WEIGHT"].Expression;
+            Predicate p = Predicate.TrueForAll;
+            if (this._Parameters.Exists("@WHERE"))
+                p = new Predicate(this._Parameters["@WHERE"].Expression);
 
             // Model //
-            Thoroughbred.ARizenTalent.LinearRegression lm = new Thoroughbred.ARizenTalent.LinearRegression(name, y, x, w);
-            lm.Render(data);
+            Thoroughbred.ARizenTalent.LinearRegression lm = new Thoroughbred.ARizenTalent.LinearRegression(name, data, p, y, x, w);
+            lm.Render();
 
             // Push the model to the home heap //
-            RecordSet rs1 = lm.ParameterData;
-            RecordSet rs2 = lm.ModelData;
-            this.Home.ChunkHeap.Reallocate(rs1.Name, rs1);
-            this.Home.ChunkHeap.Reallocate(rs2.Name, rs2);
+            //RecordSet rs1 = lm.ParameterData;
+            //RecordSet rs2 = lm.ModelData;
+            //this.Home.ChunkHeap.Reallocate(rs1.Name, rs1);
+            //this.Home.ChunkHeap.Reallocate(rs2.Name, rs2);
+            this.Home.Models.Reallocate(lm.Name, lm);
 
         }
 
@@ -834,6 +841,7 @@ namespace Equus.Clydesdale
             this._ParametersMap.Add("@DATA", new ProcedureParameterMetaData("@DATA!true!expressionset!The calibration dataset"));
             this._ParametersMap.Add("@LINK", new ProcedureParameterMetaData("@LINK!true!lambda!The link function"));
             this._ParametersMap.Add("@WEIGHT", new ProcedureParameterMetaData("@WEIGHT!false!expression!The weight variable"));
+            this._ParametersMap.Add("@WHERE", new ProcedureParameterMetaData("@WEIGHT!false!expression!The data filter"));
             this._ParametersMap.Add("@MAXITT", new ProcedureParameterMetaData("@MAXITT!false!expression!The maximum itterations the model will step"));
             string ErrorMessage = null;
             if (!this.CheckInvoke(out ErrorMessage))
@@ -856,18 +864,22 @@ namespace Equus.Clydesdale
             int MaxITT = 10;
             if (this._Parameters.Exists("@MAXITT"))
                 MaxITT = (int)this._Parameters["@MAXITT"].Expression.Evaluate().valueINT;
+            Predicate p = Predicate.TrueForAll;
+            if (this._Parameters.Exists("@WHERE"))
+                p = new Predicate(this._Parameters["@WHERE"].Expression);
 
             // Model //
-            Thoroughbred.ARizenTalent.GeneralizedLinearModel glm = new Thoroughbred.ARizenTalent.GeneralizedLinearModel(name, y, x, w, link);
+            Thoroughbred.ARizenTalent.GeneralizedLinearModel glm = new Thoroughbred.ARizenTalent.GeneralizedLinearModel(name, data, p, y, x, w, link);
             glm.MaximumIterations = MaxITT;
-            glm.Render(data);
+            glm.Render();
 
             // Push the model to the home heap //
-            RecordSet rs1 = glm.ParameterData;
-            RecordSet rs2 = glm.ModelData;
-            this.Home.ChunkHeap.Reallocate(rs1.Name, rs1);
-            this.Home.ChunkHeap.Reallocate(rs2.Name, rs2);
-            this.Home.Lambdas.Reallocate(glm.Name + "_LINK", link);
+            //RecordSet rs1 = glm.ParameterData;
+            //RecordSet rs2 = glm.ModelData;
+            //this.Home.ChunkHeap.Reallocate(rs1.Name, rs1);
+            //this.Home.ChunkHeap.Reallocate(rs2.Name, rs2);
+            //this.Home.Lambdas.Reallocate(glm.Name + "_LINK", link);
+            this.Home.Models.Reallocate(glm.Name, glm);
 
         }
 
@@ -885,6 +897,7 @@ namespace Equus.Clydesdale
             this._ParametersMap.Add("@OUTPUT", new ProcedureParameterMetaData("@OUTPUT!true!expression!The model variable"));
             this._ParametersMap.Add("@DATA", new ProcedureParameterMetaData("@DATA!true!expressionset!The calibration dataset"));
             this._ParametersMap.Add("@WEIGHT", new ProcedureParameterMetaData("@WEIGHT!false!expression!The weight variable"));
+            this._ParametersMap.Add("@WHERE", new ProcedureParameterMetaData("@WEIGHT!false!expression!The data filter"));
             this._ParametersMap.Add("@SCALE", new ProcedureParameterMetaData("@SCALE!false!expression!The starting scale"));
             this._ParametersMap.Add("@MAXITT", new ProcedureParameterMetaData("@MAXITT!false!expression!The maximum itterations the model will step"));
             this._ParametersMap.Add("@STRICT", new ProcedureParameterMetaData("@STRICT!false!expression!True: Trace(Design) * Scale, False: I * Scale"));
@@ -915,9 +928,12 @@ namespace Equus.Clydesdale
             bool Strict = false;
             if (this._Parameters.Exists("@STRICT"))
                 Strict = this._Parameters["@STRICT"].Expression.Evaluate().valueBOOL;
+            Predicate p = Predicate.TrueForAll;
+            if (this._Parameters.Exists("@WHERE"))
+                p = new Predicate(this._Parameters["@WHERE"].Expression);
 
             // Model //
-            Thoroughbred.ARizenTalent.NonlinearRegressionModel nlm = new Thoroughbred.ARizenTalent.NonlinearRegressionModel(name, y, x, w);
+            Thoroughbred.ARizenTalent.NonlinearRegressionModel nlm = new Thoroughbred.ARizenTalent.NonlinearRegressionModel(name, data, p, y, x, w);
             nlm.Scale = scale;
             nlm.MaximumIterations = MaxITT;
             nlm.IsStrict = Strict;
@@ -925,17 +941,81 @@ namespace Equus.Clydesdale
                 nlm.Beta = this._Parameters["@BETA"].Matrix.Evaluate().ToVector;
 
             // Fit //
-            nlm.Render(data);
+            nlm.Render();
 
             // Push the model to the home heap //
-            RecordSet rs1 = nlm.ParameterData;
-            RecordSet rs2 = nlm.ModelData;
-            this.Home.ChunkHeap.Reallocate(rs1.Name, rs1);
-            this.Home.ChunkHeap.Reallocate(rs2.Name, rs2);
+            //RecordSet rs1 = nlm.ParameterData;
+            //RecordSet rs2 = nlm.ModelData;
+            //this.Home.ChunkHeap.Reallocate(rs1.Name, rs1);
+            //this.Home.ChunkHeap.Reallocate(rs2.Name, rs2);
+            this.Home.Models.Reallocate(nlm.Name, nlm);
 
         }
 
     }
+
+    public sealed class MinerRowCluster : Procedure
+    {
+
+        public MinerRowCluster(Workspace UseHome, HParameterSet Parameters)
+            : base(SystemProcedures.Name_MinerRC, "Clusters similar rows using a modified k-means algorithm", UseHome, Parameters)
+        {
+
+            this._ParametersMap.Add("@NAME", new ProcedureParameterMetaData("@NAME!true!expression!The name of the model"));
+            this._ParametersMap.Add("@INPUT", new ProcedureParameterMetaData("@INPUT!true!expressionset!The explanatory equation"));
+            this._ParametersMap.Add("@DATA", new ProcedureParameterMetaData("@DATA!true!expressionset!The calibration dataset"));
+            this._ParametersMap.Add("@CLUSTERS", new ProcedureParameterMetaData("@CLUSTERS!true!expression!The weight variable"));
+            this._ParametersMap.Add("@WEIGHT", new ProcedureParameterMetaData("@WEIGHT!false!expression!The weight variable"));
+            this._ParametersMap.Add("@WHERE", new ProcedureParameterMetaData("@WHERE!false!expression!The number of data clusters"));
+            this._ParametersMap.Add("@MAXITT", new ProcedureParameterMetaData("@MAXITT!false!expression!The maximum itterations the model will step"));
+            string ErrorMessage = null;
+            if (!this.CheckInvoke(out ErrorMessage))
+                throw new Exception(ErrorMessage);
+
+        }
+
+        public override void Invoke()
+        {
+
+            // Get data!!!! //
+
+            string name = this._Parameters["@NAME"].Expression.Evaluate().valueSTRING;
+
+            DataSet data = this._Parameters["@DATA"].Data;
+
+            FNodeSet x = this._Parameters["@INPUT"].ExpressionSet;
+
+            int Clusters = (int)this._Parameters["@CLUSTERS"].Expression.Evaluate().INT;
+
+            FNode w = new FNodeValue(null, new Cell(1D));
+            if (this._Parameters.Exists("@WEIGHT"))
+                w = this._Parameters["@WEIGHT"].Expression;
+
+            int MaxITT = 25;
+            if (this._Parameters.Exists("@MAXITT"))
+                MaxITT = (int)this._Parameters["@MAXITT"].Expression.Evaluate().valueINT;
+
+            Predicate p = Predicate.TrueForAll;
+            if (this._Parameters.Exists("@WHERE"))
+                p = new Predicate(this._Parameters["@WHERE"].Expression);
+
+            // Model //
+            Thoroughbred.Seabiscut.RowCluster clus = new Thoroughbred.Seabiscut.RowCluster(name, data, p, x, w, Clusters);
+            clus.MaxItterations = MaxITT;
+
+            // Fit //
+            clus.Render();
+
+            // Push the model to the home heap //
+            this.Home.Models.Reallocate(clus.Name, clus);
+
+            // Append the notificiations //
+            this.Home.IO.AppendBuffer(clus.Statistics());
+
+        }
+
+    }
+
 
     public sealed class MinerFFNeural : Procedure
     {
@@ -960,24 +1040,6 @@ namespace Equus.Clydesdale
         public override void Invoke()
         {
 
-            // Get data!!!! //
-            string name = this._Parameters["@NAME"].Expression.Evaluate().valueSTRING;
-            DataSet data = this._Parameters["@DATA"].Data;
-            FNodeSet x = this._Parameters["@INPUT"].ExpressionSet;
-            FNode y = this._Parameters["@OUTPUT"].Expression;
-            FNode w = new FNodeValue(null, new Cell(1D));
-            if (this._Parameters.Exists("@WEIGHT"))
-                w = this._Parameters["@WEIGHT"].Expression;
-
-            // Model //
-            Thoroughbred.ARizenTalent.LinearRegression lm = new Thoroughbred.ARizenTalent.LinearRegression(name, y, x, w);
-            lm.Render(data);
-
-            // Push the model to the home heap //
-            RecordSet rs1 = lm.ParameterData;
-            RecordSet rs2 = lm.ModelData;
-            this.Home.ChunkHeap.Reallocate(rs1.Name, rs1);
-            this.Home.ChunkHeap.Reallocate(rs2.Name, rs2);
 
         }
 

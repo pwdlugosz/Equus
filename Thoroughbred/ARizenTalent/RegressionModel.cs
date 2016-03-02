@@ -8,6 +8,7 @@ using Equus.Horse;
 using Equus.Gidran;
 using Equus.Shire;
 using Equus.Mustang;
+using Equus.QuarterHorse;
 
 namespace Equus.Thoroughbred.ARizenTalent
 {
@@ -15,7 +16,7 @@ namespace Equus.Thoroughbred.ARizenTalent
         /// <summary>
         /// Represents an abstract class shell that houses the regression model
         /// </summary>
-        public abstract class RegressionModel
+        public abstract class RegressionModel : Model
         {
 
             // DataSet Set Variables //
@@ -39,8 +40,12 @@ namespace Equus.Thoroughbred.ARizenTalent
             protected static Cell _ZeroValue = new Cell(0D);
             protected static Cell _N95 = new Cell(1.96);
             
+            // Data //
+            protected DataSet _data;
+            protected Predicate _where;
+
             // -- Constuctor -- //
-            public RegressionModel(string Name, FNode YValue, FNodeSet XValue, FNode Weight)
+            public RegressionModel(string Name, DataSet Data, Predicate Where, FNode YValue, FNodeSet XValue, FNode Weight)
             {
 
                 // Set the inputs //
@@ -48,6 +53,8 @@ namespace Equus.Thoroughbred.ARizenTalent
                 this._XValue = XValue;
                 this._WValue = Weight;
                 this.Name = Name;
+                this._data = Data;
+                this._where = Where;
 
                 // Initialize //
                 if (this._XValue != null)
@@ -55,8 +62,8 @@ namespace Equus.Thoroughbred.ARizenTalent
 
             }
 
-            public RegressionModel(string Name, FNode Expected, FNodeSet Actual)
-                : this(Name, Expected, Actual, FNodeFactory.Value(1D))
+            public RegressionModel(string Name, DataSet Data, Predicate Where, FNode Expected, FNodeSet Actual)
+                : this(Name, Data, Where, Expected, Actual, FNodeFactory.Value(1D))
             {
             }
 
@@ -389,7 +396,7 @@ namespace Equus.Thoroughbred.ARizenTalent
             /// <summary>
             /// The name of the model
             /// </summary>
-            public string Name
+            public override string Name
             {
                 get;
                 protected set;
@@ -508,15 +515,12 @@ namespace Equus.Thoroughbred.ARizenTalent
             }
 
             /// <summary>
-            /// Returns (Xt x W x X) ^-1 Xt x W x Y
+            /// Calculates (Xt x W x X) ^-1 Xt x W x Y
             /// </summary>
             /// <param name="Data">The input data set</param>
             /// <param name="Where">Any filter needed to be applied to the data; if null, then defaults to the Predicate.TrueForAll</param>
-            /// <param name="X_Variables">The input variables</param>
-            /// <param name="Y_Variables">The response variable being modeled</param>
-            /// <param name="Weight_Variable">The weight variable</param>
             /// <returns>Returns the OLS beta matrix</returns>
-            protected CellVector OrdinaryLeastSquares(DataSet Data, Predicate Where)
+            protected CellVector OrdinaryLeastSquares()
             {
 
                 // Finish the mean and variance calculations //
@@ -524,7 +528,7 @@ namespace Equus.Thoroughbred.ARizenTalent
                 this._Variance = this._Variance / this._WeightSum - this._Mean * this._Mean;
 
                 // Build the design //
-                this.BuildDesignSupport(Data.OpenReader(Where));
+                this.BuildDesignSupport(this._data.OpenReader(this._where));
 
                 // Invert design matrix and apply to beta = (XtX)^-1 XtY //
                 CellVector v = (CellMatrix.Invert(this._Design) ^ this._Support).ToVector;
@@ -533,7 +537,13 @@ namespace Equus.Thoroughbred.ARizenTalent
 
             }
 
-            protected CellVector PartitionedOrdinaryLeastSquares(DataSet Data, Predicate Where, int Partitions)
+            /// <summary>
+            /// Calculates (Xt x W x X) ^-1 Xt x W x Y, using multiple threads
+            /// </summary>
+            /// <param name="Data">The input data set</param>
+            /// <param name="Where">Any filter needed to be applied to the data; if null, then defaults to the Predicate.TrueForAll</param>
+            /// <returns>Returns the OLS beta matrix</returns>
+            protected CellVector PartitionedOrdinaryLeastSquares(int Partitions)
             {
 
                 // Finish the mean and variance calculations //
@@ -541,7 +551,7 @@ namespace Equus.Thoroughbred.ARizenTalent
                 //this._Variance = this._Variance / this._WeightSum - this._Mean * this._Mean;
 
                 // Build the design //
-                OLSReducer red = RegressionModel.BuildDesignSupport(Data, Where, this._XValue, this._YValue, this._WValue, this._Design, this._Support, Partitions);
+                OLSReducer red = RegressionModel.BuildDesignSupport(this._data, this._where, this._XValue, this._YValue, this._WValue, this._Design, this._Support, Partitions);
                 this._NonNullObservations = red.Ticks;
                 this._Design = red.XtX;
                 this._Support = red.XtY;
@@ -553,13 +563,77 @@ namespace Equus.Thoroughbred.ARizenTalent
 
             }
 
+            /// <summary>
+            /// Writes model results to a given record stream
+            /// </summary>
+            /// <param name="Output">The record stream to write to</param>
+            /// <param name="Data">The input data</param>
+            /// <param name="Inputs">Values to input into the model</param>
+            /// <param name="OtherKeepValues">Values to keep along with the model variables</param>
+            /// <param name="Where">Any filter needed to apply to the data</param>
+            public override void Extend(RecordWriter Output, DataSet Data, FNodeSet Inputs, FNodeSet OtherKeepValues, Predicate Where)
+            {
+
+                // Create the fnode set to return //
+                FNodeSet return_vars = OtherKeepValues.CloneOfMe();
+                return_vars.Add(this.Name + "_ACTUAL", this.ModelExpected(Inputs));
+                return_vars.Add(this.Name + "_ERROR", this.ModelError(Inputs));
+
+                // Run a fast read //
+                FastReadPlan plan = new FastReadPlan(Data, Where, return_vars, Output);
+                plan.Execute();
+
+            }
+
+            public override RecordSet Extend(DataSet Data, FNodeSet Inputs, FNodeSet OtherKeepValues, Predicate Where)
+            {
+
+                // Create the fnode set to return //
+                FNodeSet return_vars = OtherKeepValues.CloneOfMe();
+                return_vars.Add(this.Name + "_ACTUAL", this.ModelExpected(Inputs));
+                return_vars.Add(this.Name + "_ERROR", this.ModelError(Inputs));
+
+                // Create a recordset //
+                RecordSet rs = new RecordSet(return_vars.Columns);
+                RecordWriter w = rs.OpenWriter();
+
+                // Run a fast read //
+                FastReadPlan plan = new FastReadPlan(Data, Where, return_vars, w);
+                plan.Execute();
+                w.Close();
+
+                return rs;
+
+            }
+
+            public override Table Extend(string Dir, string Name, DataSet Data, FNodeSet Inputs, FNodeSet OtherKeepValues, Predicate Where)
+            {
+
+                // Create the fnode set to return //
+                FNodeSet return_vars = OtherKeepValues.CloneOfMe();
+                return_vars.Add(this.Name + "_ACTUAL", this.ModelExpected(Inputs));
+                return_vars.Add(this.Name + "_ERROR", this.ModelError(Inputs));
+
+                // Create a recordset //
+                Table t = new Table(Dir, Name, return_vars.Columns, Data.MaxRecords);
+                RecordWriter w = t.OpenWriter();
+
+                // Run a fast read //
+                FastReadPlan plan = new FastReadPlan(Data, Where, return_vars, w);
+                plan.Execute();
+                w.Close();
+
+                return t;
+
+            }
+
             // Abstracts //
             /// <summary>
             /// Fits the regression model
             /// </summary>
             /// <param name="Data">The dataset (table or recordset) to calibrate the model to</param>
             /// <param name="Where">The predicate to apply to reading the data</param>
-            public abstract void Render(DataSet Data, Predicate Where);
+            //public abstract void Render();
 
             /// <summary>
             /// Fits the regression model using more than one thread
@@ -567,28 +641,11 @@ namespace Equus.Thoroughbred.ARizenTalent
             /// <param name="Data">The dataset (table or recordset) to calibrate the model to</param>
             /// <param name="Where">The predicate to apply to reading the data</param>
             /// <param name="Partitions">The number of threads to use</param>
-            public abstract void PartitionedRender(DataSet Data, Predicate Where, int Partitions);
+            public abstract void PartitionedRender(int Partitions);
+
+            public abstract FNode ModelExpected(FNodeSet Inputs);
 
             // Virtuals //
-            /// <summary>
-            /// Fits the regression model using all observations
-            /// </summary>
-            /// <param name="Data">The dataset (table or recordset) to calibrate the model to</param>
-            public virtual void Render(DataSet Data)
-            {
-                this.Render(Data, Predicate.TrueForAll);
-            }
-
-            /// <summary>
-            /// Fits the regression model
-            /// </summary>
-            /// <param name="Data">The dataset (table or recordset) to calibrate the model to</param>
-            /// <param name="Partitions">The number of threads to use</param>
-            public virtual void PartitionedRender(DataSet Data, int Partitions)
-            {
-                this.PartitionedRender(Data, Predicate.TrueForAll, Partitions);
-            }
-
             /// <summary>
             /// Builds the sum of square errors for a linear model
             /// </summary>
@@ -669,12 +726,17 @@ namespace Equus.Thoroughbred.ARizenTalent
 
             }
 
+            public FNode ModelError(FNodeSet Inputs)
+            {
+                return this.Expected - this.ModelExpected(Inputs);
+            }
+
             // Overrides //
             /// <summary>
             /// Returns a string a summarizing the key statitics of the model
             /// </summary>
             /// <returns>A string summarizing the model</returns>
-            public override string ToString()
+            public override string Statistics()
             {
 
                 /*

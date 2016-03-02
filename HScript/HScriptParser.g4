@@ -219,7 +219,7 @@ query_action
 	| matrix_name ASSIGN matrix_expression SEMI_COLON																# ActMatAssign
 	| matrix_unit_assign																							# ActMatUnitAssign
 	| execute_script SEMI_COLON																						# ActExecuteScript
-	| K_IF expression SEMI_COLON K_THEN query_action (K_ELSE query_action)?											# ActIf // IF t == v THEN (x++) ELSE (x--)
+	| K_IF expression SEMI_COLON K_THEN query_action (SEMI_COLON K_ELSE query_action)?								# ActIf // IF t == v THEN (x++) ELSE (x--)
 	| K_FOR variable ASSIGN expression K_TO expression SEMI_COLON query_action										# ActFor // For T = 0 to 10 (I++,I--)
 	;
 
