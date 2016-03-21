@@ -16,7 +16,7 @@ command
 	: command_action
 
 	// Executes //
-	| inline_script
+	//| inline_script
 	
 	// CRUDAM Commands //
 	| crudam_read
@@ -172,7 +172,7 @@ by_clause : K_BY expression_alias_list;
 */
 crudam_merge : 
 	K_MERGE (merge_type)? merge_source K_WITH merge_source SEMI_COLON
-	(K_ON merge_equi_predicate (K_AND merge_equi_predicate)* SEMI_COLON)? 
+	(K_ON merge_equi_predicate (AND merge_equi_predicate)* SEMI_COLON)? 
 	(where_clause SEMI_COLON)? 
 	(merge_algorithm SEMI_COLON)?
 	return_action SEMI_COLON;
@@ -197,7 +197,7 @@ partitions : K_PARTITIONS (expression)? SEMI_COLON;
 		-- runs either a Horse procedure
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
 // Execute //
-inline_script : K_INLINE expression SEMI_COLON (bind_element_set)?;
+//inline_script : K_INLINE expression SEMI_COLON (bind_element_set)?;
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	Actions:
@@ -212,7 +212,7 @@ query_action
 	: variable_assign																								# ActScalarAssign // x = y
 	| print_action																									# ActPrint
 	| return_action SEMI_COLON																						# ActReturn // Return A, B AS C, D * E / F AS G
-	| K_BEGIN SEMI_COLON (query_action)+ K_END SEMI_COLON																		# ActBeginEnd // Begin <...> End
+	| K_BEGIN SEMI_COLON (query_action)+ K_END SEMI_COLON															# ActBeginEnd // Begin <...> End
 	| K_ESCAPE K_FOR SEMI_COLON																						# ActEscapeFor
 	| K_ESCAPE K_READ SEMI_COLON																					# ActEscapeRead
 	| system_action																									# ActSys
@@ -221,12 +221,13 @@ query_action
 	| execute_script SEMI_COLON																						# ActExecuteScript
 	| K_IF expression SEMI_COLON K_THEN query_action (SEMI_COLON K_ELSE query_action)?								# ActIf // IF t == v THEN (x++) ELSE (x--)
 	| K_FOR variable ASSIGN expression K_TO expression SEMI_COLON query_action										# ActFor // For T = 0 to 10 (I++,I--)
+	| K_WHILE expression SEMI_COLON query_action																	# ActWhile
 	;
 
 // Print //
 print_action 
-	: K_PRINT expression_or_wildcard_set SEMI_COLON		# PrintScalar
-	| K_PRINT matrix_expression SEMI_COLON					# PrintMatrix
+	: K_PRINT expression_or_wildcard_set SEMI_COLON					# PrintScalar
+	| K_PRINT matrix_expression SEMI_COLON							# PrintMatrix
 	;
 
 // Matrix //
@@ -252,15 +253,6 @@ variable_assign
 	| variable AUTO_DEC SEMI_COLON												# ActAutoDec
 	;
 
-/*
-
-	SYSTEM ACTIONS RUN A PROCEDURE WRITTEN IN .NET
-	SYNTAX: EXEC SYS_PRINT_TABLE BIND @TABLE = 'TEMP.TABLE';
-
-	SCRIPT EXECUTIONS COMPILE TEXT IN A STAND-ALONE INSTANCE OF HSCRIPTPROCCESSOR, INHERITING ONLY THE CONNECTIONS
-	SYNTAX: EXEC SCRIPT "PRINT @TEXT;" BIND @TEXT = STATIC 'HELLO WORLD!';
-
-*/
 
 // System action //
 system_action : K_EXEC IDENTIFIER SEMI_COLON hparameter_set?;
@@ -274,7 +266,7 @@ hparameter_set : hparameter*;
 hparameter : SCALAR ASSIGN (K_DATA full_table_name | expression | expression_alias_list | lambda_unit | matrix_expression) SEMI_COLON;
 	
 // 'TO' methods //
-return_action : K_RETURN expression_or_wildcard_set (K_INTO | K_APPEND) full_table_name;
+return_action : (K_INSERT K_INTO | K_CREATE K_TABLE) full_table_name K_VALUES expression_or_wildcard_set;
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	Matricies:
@@ -355,7 +347,7 @@ expression
 	| expression CAST type  																			# Cast
 	| variable																							# ExpressionVariable
 	| cell																								# Static
-	//| (IDENTIFIER DOT)? RECORD_REF LPAREN type COMMA expression RPAREN									# DynamicRef
+	| BEACON																							# Beacon
 	| expression NULL_OP expression																		# IfNullOp
 	| expression IF_OP expression (ELSE_OP expression)?													# IfOp
 	| K_CASE (K_WHEN expression K_THEN expression)+ (K_ELSE expression)? K_END							# CaseOp
@@ -409,7 +401,7 @@ cell
 
 // Table logic //
 full_table_name 
-	: table_name
+	: K_GLOBAL DOT table_name
 	| database_name DOT table_name
 	;
 table_name : IDENTIFIER;

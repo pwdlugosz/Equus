@@ -30,12 +30,15 @@ namespace Equus.HScript.Parameters
         {
             this._affinity = HParameterAffinity.Expression;
             this._expression = Value;
+            this._expression_set = new FNodeSet();
+            this._expression_set.Add(Value); // in case a set of one was passed 
         }
 
         public HParameter(FNodeSet Value)
         {
             this._affinity = HParameterAffinity.ExpressionSet;
             this._expression_set = Value;
+            this._expression = Value[0];
         }
 
         public HParameter(Lambda Value)

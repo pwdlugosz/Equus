@@ -11,17 +11,20 @@ namespace Equus.Numerics
     {
 
         BinarySigmoid,
+        BinarySigmoid2,
         BinaryHyperTangent,
         BinarySine,
         BinaryCosine,
         BinaryQuadratic,
         BinaryGaussian,
+        
         DipolSigmoid,
         DipolHyperTangent,
         DipolSine,
         DipolCosine,
         DipolQuadratic,
         DipolGaussian,
+        
         RealLinear,
         RealLogrithmicRectifier,
         RealHyperbolicRectifier,
@@ -70,6 +73,22 @@ namespace Equus.Numerics
         {
             double p = 1D / (1D + Math.Exp(-x));
             return (p) * (1D - p);
+        }
+
+    }
+
+    public class BinarySigmoid2 : ScalarFunction
+    {
+
+        public override double Evaluate(double x)
+        {
+            return 1D / (1D + Math.Exp(-x));
+        }
+
+        public override double Gradient(double x)
+        {
+            double p = 1D / (1D + Math.Exp(-x));
+            return (p) * (1D - p) + 0.1;
         }
 
     }
@@ -399,6 +418,7 @@ namespace Equus.Numerics
                 case ScalarFunctionType.BinaryHyperTangent: return new BinaryHyperTangent();
                 case ScalarFunctionType.BinaryQuadratic: return new BinaryQuadratic();
                 case ScalarFunctionType.BinarySigmoid: return new BinarySigmoid();
+                case ScalarFunctionType.BinarySigmoid2: return new BinarySigmoid2();
                 case ScalarFunctionType.BinarySine: return new BinarySine();
 
                 case ScalarFunctionType.DipolCosine: return new BinaryCosine();

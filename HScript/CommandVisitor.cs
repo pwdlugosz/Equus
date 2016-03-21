@@ -46,16 +46,10 @@ namespace Equus.HScript
         public override CommandPlan VisitCrudam_create_table(HScriptParser.Crudam_create_tableContext context)
         {
 
-            CreateTablePlan plan = CommandCompiler.RenderCreatePlan(this.Home, context);
-            return plan;
-
-        }
-
-        public override CommandPlan VisitCrudam_declare_table(HScriptParser.Crudam_declare_tableContext context)
-        {
-
-            CreateChunkPlan plan = CommandCompiler.RenderCreateChunk(this.Home, context);
-            return plan;
+            if (context.full_table_name().K_GLOBAL() == null)
+                return CommandCompiler.RenderCreatePlan(this.Home, context);
+            else
+                return CommandCompiler.RenderCreateChunk(this.Home, context);
 
         }
 

@@ -14,6 +14,7 @@ using Equus.Thoroughbred.ARizenTalent;
 using Equus.Thoroughbred.ManOWar;
 using Equus.Gidran;
 using Equus.Nokota;
+using System.Drawing;
 
 /*
  * Mustang : core data libraries
@@ -39,98 +40,49 @@ namespace Equus
             sw.Start();
             long bytes = GC.GetTotalMemory(false);
 
+            //double[][] data = new double[4][];
+
+            //data[0] = new double[] {0D, 0D, 0D};
+            //data[1] = new double[] {1D, 0D, 1D};
+            //data[2] = new double[] {0D, 1D, 1D};
+            //data[3] = new double[] {1D, 1D, 0D};
+
+            //Matrix m = new Matrix(4, 3);
+            //m[0] = data[0];
+            //m[1] = data[1];
+            //m[2] = data[2];
+            //m[3] = data[3];
+
+            //Thoroughbred.WarAdmiral.LinkUpdate rule = Thoroughbred.WarAdmiral.LinkUpdateFactory.Generate("b;0.70;0.0");
+            //Thoroughbred.WarAdmiral.LinkUpdate rule = Thoroughbred.WarAdmiral.LinkUpdateFactory.Generate("m");
+            //Thoroughbred.WarAdmiral.LinkUpdate rule = Thoroughbred.WarAdmiral.LinkUpdateFactory.Generate("r");
+            //Thoroughbred.WarAdmiral.LinkUpdate rule = Thoroughbred.WarAdmiral.LinkUpdateFactory.Generate("r+");
+            //Thoroughbred.WarAdmiral.LinkUpdate rule = Thoroughbred.WarAdmiral.LinkUpdateFactory.Generate("r-");
+            //Thoroughbred.WarAdmiral.LinkUpdate rule = Thoroughbred.WarAdmiral.LinkUpdateFactory.Generate("ir+");
+            //Thoroughbred.WarAdmiral.LinkUpdate rule = Thoroughbred.WarAdmiral.LinkUpdateFactory.Generate("ir-");
+            //Thoroughbred.WarAdmiral.LinkUpdate rule = Thoroughbred.WarAdmiral.LinkUpdateFactory.Generate("test");
+
+            //Thoroughbred.WarAdmiral.Network net = new Thoroughbred.WarAdmiral.Network(rule, data);
+
+            //net.AddDataLayer(new int[] { 0, 1 }, true);
+            //net.AddHiddenLayer(2, true, new Numerics.BinarySigmoid());
+            //net.AddOutputLayer(new int[] { 2 }, new Numerics.BinarySigmoid());
+            //net.Construct();
+
+            //net.Render();
+            //net.PrintPredictions(data);
+            //Console.WriteLine(net.Statistics());
+
+            //Console.WriteLine("--------------------------------------");
+            //Thoroughbred.ManOWar.SimpleNetwork sim = new SimpleNetwork();
+            //sim.TrainOne(m);
+
+            //sim.PrintGradients();
+
             Workspace space = new Workspace(@"C:\Users\pwdlu_000\Documents\Equus\X_Data\Temp_Database\");
             HScriptProcessor runner = new HScriptProcessor(space);
             string script = File.ReadAllText(@"C:\Users\pwdlu_000\Documents\Equus\Equus\HScript\TestScript.txt");
             runner.Execute(script);
-
-            //RecordSet rs = new RecordSet(new Schema("key int, true_cluster int, value1 double, value2 double, value3 double"));
-
-            //Random r = new Random(129);
-            //for (int i = 0; i < 1000; i++)
-            //{
-
-            //    if (r.Next() % 2 == 0)
-            //    {
-            //        rs.AddData(i, 0, r.NextDouble() * 500 + 500, r.NextDouble() * 100 + 100, r.NextDouble() * 20 + 20);
-            //    }
-            //    else if (r.Next() % 3 == 0)
-            //    {
-            //        rs.AddData(i, 1, r.NextDouble() * 5000 + 5000, r.NextDouble() * 1000 + 1000, r.NextDouble() * 200 + 200);
-            //    }
-            //    else
-            //    {
-            //        rs.AddData(i, 2, r.NextDouble() * 50000 + 50000, r.NextDouble() * 10000 + 10000, r.NextDouble() * 2000 + 2000);
-            //    }
-
-            //}
-
-
-            //FNodeSet nodes = new FNodeSet();
-            //nodes.Add(FNodeFactory.Field(2, CellAffinity.DOUBLE));
-            //nodes.Add(FNodeFactory.Field(3, CellAffinity.DOUBLE));
-            //nodes.Add(FNodeFactory.Field(4, CellAffinity.DOUBLE));
-
-            //Thoroughbred.Seabiscut.RowCluster clus = new Thoroughbred.Seabiscut.RowCluster("Test1", rs, Predicate.TrueForAll, nodes, 3);
-            //clus.DistanceMeasure = Thoroughbred.Seabiscut.RowClusterRuleFactory.Gauss;
-            //clus.Render();
-            //Console.WriteLine(clus.Statistics());
-
-            //FNodeSet selects = new FNodeSet(rs.Columns);
-            //RecordSet a_to_e = clus.Extend(rs, nodes, selects, Predicate.TrueForAll);
-
-            //a_to_e.Print(10);
-
-            //FNodeSet keys = new FNodeSet();
-            //keys.Add("EXPECTED", FNodeFactory.Field(a_to_e.Columns, "CLUSTER_ID"));
-            //keys.Add("ACTUAL", FNodeFactory.Field(a_to_e.Columns, "TRUE_CLUSTER"));
-            //AggregateSet aggs = new AggregateSet();
-            //aggs.Add(new AggregateCountAll(new FNodeValue(null, new Cell(1))), "COUNT_OF");
-
-            //RecordSet a_to_e_summary = AggregatePlan.Render(a_to_e, Predicate.TrueForAll, keys, aggs);
-            //a_to_e_summary.Print();
-
-
-            //Program.CommandRun(args);
-
-            //Workspace space = new Workspace(@"C:\Users\pwdlu_000\Documents\Equus\X_Data\Temp_Database\");
-            //HScriptProcessor runner = new HScriptProcessor(space);
-            //string script = File.ReadAllText(@"C:\Users\pwdlu_000\Documents\Equus\Equus\HScript\TestScript.txt");
-            //runner.Execute(script);
-
-            //RecordSet XORGateTest = new RecordSet("X1 DOUBLE, X2 DOUBLE, Y_XOR DOUBLE, Y_AND DOUBLE, Y_OR DOUBLE, Y_NOXOR DOUBLE");
-            //XORGateTest.AddData(0D, 0D, 0D, 0D, 0D, 1D);
-            //XORGateTest.AddData(1D, 0D, 1D, 0D, 1D, 0D);
-            //XORGateTest.AddData(0D, 1D, 1D, 0D, 1D, 0D);
-            //XORGateTest.AddData(1D, 1D, 0D, 1D, 1D, 1D);
-
-            //FNodeSet inputs = Dressage.ExpressionFactory.ParseFNodeSet("X1,X2", XORGateTest.Columns);
-            //FNodeSet outputs = Dressage.ExpressionFactory.ParseFNodeSet("Y_XOR", XORGateTest.Columns);
-
-            //NeuralNetworkFactory factory = new NeuralNetworkFactory(XORGateTest, Predicate.TrueForAll);
-            //factory.AddDataLayer(true, inputs);
-            //factory.AddHiddenLayer(true, 2, Numerics.ScalarFunctionFactory.Select("BinarySigmoid"), new NodeReductionLinear());
-            //factory.AddPredictionLayer(outputs, Numerics.ScalarFunctionFactory.Select("BinarySigmoid"), new NodeReductionLinear());
-            //factory.DefaultRule = "bprop";
-            //NeuralNetwork net = factory.Construct();
-
-
-            //net.Seed = 128;
-            //net.Epochs = 10000;
-            ////NeuralRule rule = RuleFactory.Construct("bprop", net.Responses);
-            ////NeuralRule rule = RuleFactory.Construct("rprop", net.Responses);
-            ////NeuralRule rule = RuleFactory.Construct("rprop+", net.Responses);
-            ////NeuralRule rule = RuleFactory.Construct("rprop-", net.Responses);
-            ////NeuralRule rule = RuleFactory.Construct("irprop+", net.Responses);
-            ////NeuralRule rule = RuleFactory.Construct("irprop-", net.Responses);
-            ////NeuralRule rule = RuleFactory.Construct("mprop", net.Responses);
-            ////NeuralRule rule = RuleFactory.Construct("qprop", net.Responses);
-            ////NeuralRule rule = RuleFactory.Construct("hprop", net.Responses);
-
-            //net.Render();
-
-            //net.PrintPredictions();
-            //Console.WriteLine(net.Statistics());
 
             bytes = GC.GetTotalMemory(false) - bytes;
             Console.WriteLine("Disk Reads: {0} ::::: Disk Writes: {1}", BinarySerializer.DiskReads, BinarySerializer.DiskWrites);
@@ -402,10 +354,21 @@ namespace Equus
 
         public static bool IsPrime(long n)
         {
-            if (n <= 1) return false;
-            for (long i = 2; i <= Math.Sqrt(n); i++)
-                if (n % i == 0) return false;
+            
+            if (n <= 1) 
+                return false;
+
+            if (n < 6)
+                return (n == 2 || n == 3);
+
+            if (((n + 1) % 6 != 0) && ((n-1) % 6 != 0))
+                return false;
+
+            for (long i = 6; i <= (long)Math.Sqrt(n) + 1; i++)
+                if (n % i == 0) 
+                    return false;
             return true;
+
         }
 
         public void NeuralTest()
@@ -444,8 +407,62 @@ namespace Equus
 
         }
 
+
+
     }
 
+    public static class OCRHelper
+    {
+
+        public static Record GetCircleRecord(string FilePath)
+        {
+
+            Bitmap map = new Bitmap((FilePath));
+            Record r = Lipizzan.Exchange.MonoChromeBitmapToRecord(map);
+            RecordBuilder rb = new RecordBuilder();
+            rb.Add(FilePath);
+            rb.Add(1D);
+            rb.Add(0D);
+            rb.Add(0D);
+            rb.Add(r);
+
+            return rb.ToRecord();
+        
+        }
+
+        public static Record GetTriangleRecord(string FilePath)
+        {
+
+            Bitmap map = new Bitmap((FilePath));
+            Record r = Lipizzan.Exchange.MonoChromeBitmapToRecord(map);
+            RecordBuilder rb = new RecordBuilder();
+            rb.Add(FilePath);
+            rb.Add(0D);
+            rb.Add(1D);
+            rb.Add(0D);
+            rb.Add(r);
+
+            return rb.ToRecord();
+
+        }
+
+        public static Record GetSquareRecord(string FilePath)
+        {
+
+            Bitmap map = new Bitmap((FilePath));
+            Record r = Lipizzan.Exchange.MonoChromeBitmapToRecord(map);
+            RecordBuilder rb = new RecordBuilder();
+            rb.Add(FilePath);
+            rb.Add(0D);
+            rb.Add(0D);
+            rb.Add(1D);
+            rb.Add(r);
+
+            return rb.ToRecord();
+
+        }
+
+    }
 
 
 }

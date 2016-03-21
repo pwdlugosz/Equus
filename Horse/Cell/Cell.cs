@@ -950,6 +950,10 @@ namespace Equus.Horse
         /// <returns></returns>
         internal static bool IsNumeric(string Value, bool AllowDot)
         {
+
+            if (Value == "." && AllowDot)
+                return false;
+            
             for (int i = 0; i < Value.Length; i++)
             {
                 if (!char.IsDigit(Value, i) && ((AllowDot && Value[i] != '.') || !AllowDot))

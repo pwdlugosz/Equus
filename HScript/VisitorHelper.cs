@@ -29,7 +29,7 @@ namespace Equus.HScript
             string t_name = context.table_name().IDENTIFIER().GetText();
 
             // Global context //
-            if (context.database_name() == null)
+            if (context.K_GLOBAL() != null)
             {
                 if (Enviro.ChunkHeap.Exists(t_name))
                     return Enviro.ChunkHeap[t_name];
@@ -61,7 +61,7 @@ namespace Equus.HScript
 
             // Figure out if we need to append //
             bool appendto =
-                (context.K_APPEND() != null)
+                (context.K_INSERT() != null)
                 ? true
                 : false;
 
@@ -104,12 +104,12 @@ namespace Equus.HScript
             string name = context.full_table_name().table_name().IDENTIFIER().GetText();
             string db =
                 (context.full_table_name().database_name() == null)
-                ? "global"
+                ? "GLOBAL"
                 : context.full_table_name().database_name().GetText();
 
             // Figure out if we need to append //
             bool appendto =
-                (context.K_APPEND() != null)
+                (context.K_INSERT() != null)
                 ? true
                 : false;
 

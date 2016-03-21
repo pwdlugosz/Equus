@@ -580,6 +580,8 @@ namespace Equus.Horse
             // Variables //
             RecordSet x = new RecordSet(A.Columns);
             RecordSet y = new RecordSet(B.Columns);
+            x.MaxRecords = A.MaxRecords;
+            y.MaxRecords = B.MaxRecords;
             int CompareResult = 0;
             RecordReader c1 = new RecordReader(A);
             RecordReader c2 = new RecordReader(B);

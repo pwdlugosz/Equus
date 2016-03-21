@@ -55,6 +55,7 @@ namespace Equus.HScript
 
         }
 
+        /*
         public static void AppendCallStack(HScriptProcessor Caller, ExpressionVisitor Evaluator, HScriptParser.Inline_scriptContext context)
         {
 
@@ -72,7 +73,8 @@ namespace Equus.HScript
             Caller.LoadCallStack(script);
 
         }
-    
+        */
+
     }
 
 

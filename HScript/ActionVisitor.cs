@@ -224,9 +224,9 @@ namespace Equus.HScript
         {
 
             if (this.IsAsync)
-                return this.ParseConcurrentRename(context);
+                return this.ParseConcurrentReturn(context);
             else
-                return this.ParseSequentialRename(context);
+                return this.ParseSequentialReturn(context);
 
         }
 
@@ -253,8 +253,13 @@ namespace Equus.HScript
 
             // Determine which heap to pull from //
             int heap_type = this.VariableType(context.variable());
+            
+            // if the variable doesnt exist, create a variable in the global heap //
             if (heap_type != 1 && heap_type != 2)
-                throw new Exception();
+            {
+                heap_type = 1;
+                this.Home.GlobalHeap.Scalars.Reallocate(context.variable().GetText().Split('.').Last(), new Cell(0));
+            }
 
             // Get the correct heap //
             MemoryStruct h = 
@@ -709,6 +714,29 @@ namespace Equus.HScript
 
         }
 
+        public override TNode VisitActWhile(HScriptParser.ActWhileContext context)
+        {
+
+
+            // Get the controll structure //
+            FNode control = this.Evaluator.ToNode(context.expression());
+
+            // Create the parent node //
+            TNode t = new TNodeWhile(this.MasterNode, control);
+
+            // Get the sub - action //
+            TNode sub_action = this.ToNode(context.query_action());
+
+            // Assign the sub-action to t //
+            t.AddChild(sub_action);
+
+            // Assign the master node to the node we just built //
+            this.MasterNode = t;
+
+            return t;
+
+        }
+
         public TNode ToNode(HScriptParser.Query_actionContext context)
         {
             this.MasterNode = null;
@@ -725,7 +753,7 @@ namespace Equus.HScript
 
         }
 
-        private TNode ParseSequentialRename(HScriptParser.ActReturnContext context)
+        private TNode ParseSequentialReturn(HScriptParser.ActReturnContext context)
         {
 
             // Get the FNodeSet //
@@ -756,7 +784,7 @@ namespace Equus.HScript
 
         }
 
-        private TNode ParseConcurrentRename(HScriptParser.ActReturnContext context)
+        private TNode ParseConcurrentReturn(HScriptParser.ActReturnContext context)
         {
 
             // Get the FNodeSet //

@@ -53,6 +53,9 @@ namespace Equus.Thoroughbred.ManOWar
 
                 double nuf = 1 * this._weights[2, 0] + h1 * this._weights[2, 1] + h2 * this._weights[2, 2];
                 double y = this._act.Evaluate(nuf);
+                Console.WriteLine("H1 : {0}", h1);
+                Console.WriteLine("H2 : {0}", h2);
+                Console.WriteLine("Y : {0}", y);
 
                 double dx = y * (1 - y) * (values[2] - y);
                 this.sse += (y - values[2]) * (y - values[2]);

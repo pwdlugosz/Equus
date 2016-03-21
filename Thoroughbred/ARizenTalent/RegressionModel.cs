@@ -673,8 +673,7 @@ namespace Equus.Thoroughbred.ARizenTalent
                 FNode actual = this._YValue.CloneOfMe();
                 FNode expected = this.LinearPredictor.CloneOfMe();
                 FNode weight = this._WValue.CloneOfMe();
-                Console.WriteLine(expected.Unparse(Data.Columns));
-
+                
                 // Build a register //
                 StaticRegister memory = new StaticRegister(null);
                 actual.AssignRegister(memory);

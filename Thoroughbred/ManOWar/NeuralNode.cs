@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Equus.Horse;
 using Equus.Gidran;
 using Equus.Numerics;
+using Equus.Calabrese;
 
 namespace Equus.Thoroughbred.ManOWar
 {
@@ -54,6 +55,21 @@ namespace Equus.Thoroughbred.ManOWar
         {
             get;
             private set;
+        }
+
+        public FNodeSet Expected
+        {
+            get
+            {
+
+                FNodeSet nodes = new FNodeSet();
+                foreach (NeuralNode n in this._Nodes)
+                {
+                    nodes.Add(n.Name, n.MeanResponse);
+                }
+                return nodes;
+
+            }
         }
 
         // Methods //
@@ -225,6 +241,21 @@ namespace Equus.Thoroughbred.ManOWar
             get { return "A=" + this.ActualString + " | E=" + this.PredictionString; }
         }
 
+        public FNodeSet Expected
+        {
+            get
+            {
+
+                FNodeSet nodes = new FNodeSet();
+                foreach (NeuralNode n in this._Responses)
+                {
+                    nodes.Add(n.Name, n.MeanResponse);
+                }
+                return nodes;
+
+            }
+        }
+
     }
 
     public abstract class NeuralNode : IEquatable<NeuralNode>
@@ -286,6 +317,11 @@ namespace Equus.Thoroughbred.ManOWar
         public string Name
         {
             get { return this._Name; }
+        }
+
+        public FNode MeanResponse
+        {
+            get { return new NeuralMeanFNode(this); }
         }
 
         // Non-Abstract Methods //
@@ -424,6 +460,40 @@ namespace Equus.Thoroughbred.ManOWar
             return this == Node;
         }
 
+        // Private Classes //
+        private sealed class NeuralMeanFNode : FNode
+        {
+
+            private NeuralNode _node;
+            
+            public NeuralMeanFNode(NeuralNode Node)
+                : base(null, FNodeAffinity.ResultNode)
+            {
+                this._node = Node;
+            }
+
+            public override string Unparse(Schema S)
+            {
+                return this._node.Name;
+            }
+
+            public override FNode CloneOfMe()
+            {
+                return new NeuralMeanFNode(this._node);
+            }
+
+            public override Cell Evaluate()
+            {
+                return new Cell(this._node.MEAN);
+            }
+
+            public override CellAffinity ReturnAffinity()
+            {
+                return CellAffinity.DOUBLE;
+            }
+
+        }
+
     }
 
     public sealed class NeuralNodeReference : NeuralNode
@@ -527,5 +597,6 @@ namespace Equus.Thoroughbred.ManOWar
 
     }
 
+    
 
 }

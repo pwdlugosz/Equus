@@ -81,6 +81,7 @@ namespace Equus.Clydesdale
             { SystemProcedures.Name_MinerGLM, (home, parameters) => { return new MinerGeneralizedLinearModel(home, parameters);}},
             { SystemProcedures.Name_MinerNLM, (home, parameters) => { return new MinerNonLinearModel(home, parameters);}},
             { SystemProcedures.Name_MinerRC, (home, parameters) => { return new MinerRowCluster(home, parameters);}},
+            { SystemProcedures.Name_MinerFFNN, (home, parameters) => { return new MinerFFNeural(home,parameters);}},
 
         };
 
@@ -104,16 +105,14 @@ namespace Equus.Clydesdale
             : base(SystemProcedures.Name_SystemExplain, "Prints meta data for a procedure", Home, Parameters)
         {
             
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
-
+            this._ParametersMap.Add("@NAME", new ProcedureParameterMetaData("@NAME!true!expression!The name of the stored procedure"));
+            
         }
 
         public override void Invoke()
         {
 
-            string ProcName = this._Parameters["@PROC_NAME"].Expression.Evaluate().valueSTRING;
+            string ProcName = this._Parameters["@NAME"].Expression.Evaluate().valueSTRING;
             if (SystemProcedures.Exists(ProcName))
                 Comm.WriteLine(SystemProcedures.Lookup(ProcName, null, null).Info());
             else
@@ -129,11 +128,10 @@ namespace Equus.Clydesdale
         public SystemProcedureConnect(Workspace Home, HParameterSet Parameters)
             : base(SystemProcedures.Name_SystemConnect, "Connects to a datastore", Home, Parameters)
         {
+
             this._ParametersMap.Add("@ALIAS", new ProcedureParameterMetaData("@ALIAS!true!expression!The alias to assign to the connection path"));
             this._ParametersMap.Add("@PATH", new ProcedureParameterMetaData("@PATH!true!expression!The path to the datastore"));
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
+            
         }
 
         public override void Invoke()
@@ -154,9 +152,6 @@ namespace Equus.Clydesdale
             : base(SystemProcedures.Name_SystemDisconnect, "Disconnects a datastore", Home, Parameters)
         {
             this._ParametersMap.Add("@ALIAS", new ProcedureParameterMetaData("@ALIAS!true!expression!The alias to assign to the connection path"));
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
         }
 
         public override void Invoke()
@@ -175,16 +170,15 @@ namespace Equus.Clydesdale
         public SystemProcedureSort(Workspace UseHome, HParameterSet Parameters)
             : base(SystemProcedures.Name_SystemSort, "Does an inplace merge-sort of the dataset", UseHome, Parameters)
         {
+            
             this._ParametersMap.Add("@TABLE", new ProcedureParameterMetaData("@TABLE!true!dataset!The full table name of the table to sort"));
             this._ParametersMap.Add("@KEY", new ProcedureParameterMetaData("@KEY!true!expression!The sort key as a string"));
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
+            
         }
 
         public override void Invoke()
         {
-            
+
             // Get the table //
             DataSet data = this._Parameters["@TABLE"].Data;
 
@@ -209,11 +203,10 @@ namespace Equus.Clydesdale
         public SystemProcedureShuffle(Workspace UseHome, HParameterSet Parameters)
             : base(SystemProcedures.Name_SystemShuffle, "Randomly shuffles records in a dataset", UseHome, Parameters)
         {
+
             this._ParametersMap.Add("@TABLE", new ProcedureParameterMetaData("@TABLE!true!dataset!The full table name of the table to shuffle"));
             this._ParametersMap.Add("@SEED", new ProcedureParameterMetaData("@SEED!false!expression!The random seed"));
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
+
         }
 
         public override void Invoke()
@@ -245,9 +238,6 @@ namespace Equus.Clydesdale
             : base(SystemProcedures.Name_SystemReverse, "Reverses all records in a dataset", UseHome, Parameters)
         {
             this._ParametersMap.Add("@TABLE", new ProcedureParameterMetaData("@TABLE!true!dataset!The full table name of the table to reverse"));
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
         }
 
         public override void Invoke()
@@ -275,9 +265,6 @@ namespace Equus.Clydesdale
         {
             this._ParametersMap.Add("@TABLE", new ProcedureParameterMetaData("@TABLE!true!dataset!The full table name of the table to print"));
             this._ParametersMap.Add("@COUNT", new ProcedureParameterMetaData("@COUNT!false!expression!The max count of records to print; if blank, it will print all records"));
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
         }
 
         public override void Invoke()
@@ -326,9 +313,6 @@ namespace Equus.Clydesdale
             this._ParametersMap.Add("@DELIM", new ProcedureParameterMetaData("@DELIM!false!expression!The deliminator of the file, defaults to TAB"));
             this._ParametersMap.Add("@ESCAPE", new ProcedureParameterMetaData("@ESCAPE!false!expression!The escape character of the string, defaults to null"));
             this._ParametersMap.Add("@SKIPS", new ProcedureParameterMetaData("@SKIPS!false!expression!The number of records in the flat file to skip (like headers), defaults to 0"));
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
         }
 
         public override void Invoke()
@@ -375,9 +359,7 @@ namespace Equus.Clydesdale
             this._ParametersMap.Add("@TABLE", new ProcedureParameterMetaData("@TABLE!true!dataset!The full table name of the table to export"));
             this._ParametersMap.Add("@PATH", new ProcedureParameterMetaData("@PATH!true!expression!The path to the flat file to export to"));
             this._ParametersMap.Add("@DELIM", new ProcedureParameterMetaData("@DELIM!false!expression!The deliminator of the file, defaults to TAB"));
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
+
         }
 
         public override void Invoke()
@@ -406,9 +388,6 @@ namespace Equus.Clydesdale
         {
             this._ParametersMap.Add("@URL", new ProcedureParameterMetaData("@URL!true!expression!The URL to download"));
             this._ParametersMap.Add("@PATH", new ProcedureParameterMetaData("@PATH!true!expression!The path to the flat file to export to"));
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
         }
 
         public override void Invoke()
@@ -431,9 +410,6 @@ namespace Equus.Clydesdale
             : base(SystemProcedures.Name_SystemDebugAST, "Prints the abstract syntax tree of a given expression", UseHome, Parameters)
         {
             this._ParametersMap.Add("@EXPRESSION", new ProcedureParameterMetaData("@EXPRESSION!true!expression!The expression to decompile"));
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
         }
 
         public override void Invoke()
@@ -455,9 +431,7 @@ namespace Equus.Clydesdale
             : base(SystemProcedures.Name_SystemDropTable, "Remove an in memory table from memory or drops a static table from disk", UseHome, Parameters)
         {
             this._ParametersMap.Add("@TABLE", new ProcedureParameterMetaData("@TABLE!true!expression!The full table name of the table to drop"));
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
+
         }
 
         public override void Invoke()
@@ -480,9 +454,6 @@ namespace Equus.Clydesdale
             : base(SystemProcedures.Name_SystemDeallocate, "Deallocates a scalar from memory", UseHome, Parameters)
         {
             this._ParametersMap.Add("@SCALAR", new ProcedureParameterMetaData("@SCALAR!true!expression!The name of scalar variable to deallocate"));
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
         }
 
         public override void Invoke()
@@ -503,9 +474,6 @@ namespace Equus.Clydesdale
         public SystemProcedureMemoryDump(Workspace UseHome, HParameterSet Parameters)
             : base(SystemProcedures.Name_SystemMemoryDump, "Prints all objects in memory", UseHome, Parameters)
         {
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
         }
 
         public override void Invoke()
@@ -545,9 +513,6 @@ namespace Equus.Clydesdale
             this._ParametersMap.Add("@CHUNK", new ProcedureParameterMetaData("@CHUNK!true!expression!The name of the chunk to covert"));
             this._ParametersMap.Add("@ALIAS", new ProcedureParameterMetaData("@ALIAS!true!expression!The alias of the datastore to export to"));
             this._ParametersMap.Add("@NAME", new ProcedureParameterMetaData("@NAME!true!expression!The name of the new table to export"));
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
         }
 
         public override void Invoke()
@@ -577,9 +542,6 @@ namespace Equus.Clydesdale
             : base(SystemProcedures.Name_SystemDebugLambda, "Debugs a lambda already in the heap", UseHome, Parameters)
         {
             this._ParametersMap.Add("@LAMBDA", new ProcedureParameterMetaData("@LAMBDA!true!expression!The name of the lambda to debug"));
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
         }
 
         public override void Invoke()
@@ -608,9 +570,6 @@ namespace Equus.Clydesdale
             : base(SystemProcedures.Name_SystemIO, "Toggles the communicator's IO on or off", UseHome, Parameters)
         {
             this._ParametersMap.Add("@IO", new ProcedureParameterMetaData("@IO!true!expression!True (turns io on) or false (turns io off)"));
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
         }
 
         public override void Invoke()
@@ -632,9 +591,6 @@ namespace Equus.Clydesdale
         {
             this._ParametersMap.Add("@PATH", new ProcedureParameterMetaData("@PATH!true!expression!The path of the file to move"));
             this._ParametersMap.Add("@NEW_PATH", new ProcedureParameterMetaData("@NEW_PATH!true!expression!The path of the new file name"));
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
         }
 
         public override void Invoke()
@@ -668,9 +624,6 @@ namespace Equus.Clydesdale
         {
             this._ParametersMap.Add("@PATH", new ProcedureParameterMetaData("@PATH!true!expression!The path of the file to move"));
             this._ParametersMap.Add("@NEW_PATH", new ProcedureParameterMetaData("@NEW_PATH!true!expression!The path of the new file name"));
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
         }
 
         public override void Invoke()
@@ -703,9 +656,6 @@ namespace Equus.Clydesdale
             : base(SystemProcedures.Name_FileDelete, "Deletes a file", UseHome, Parameters)
         {
             this._ParametersMap.Add("@PATH", new ProcedureParameterMetaData("@PATH!true!expression!The path of the file to delete"));
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
         }
 
         public override void Invoke()
@@ -729,9 +679,6 @@ namespace Equus.Clydesdale
         {
             this._ParametersMap.Add("@ARC_PATH", new ProcedureParameterMetaData("@ARC_PATH!true!expression!The path of the archive"));
             this._ParametersMap.Add("@DIR_PATH", new ProcedureParameterMetaData("@DIR_PATH!true!expression!The path of a new directory to export to"));
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
         }
 
         public override void Invoke()
@@ -757,9 +704,6 @@ namespace Equus.Clydesdale
         {
             this._ParametersMap.Add("@ARC_PATH", new ProcedureParameterMetaData("@ARC_PATH!true!expression!The path of the archive"));
             this._ParametersMap.Add("@DIR_PATH", new ProcedureParameterMetaData("@DIR_PATH!true!expression!The path of a new directory to export to"));
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
         }
 
         public override void Invoke()
@@ -789,12 +733,10 @@ namespace Equus.Clydesdale
             this._ParametersMap.Add("@NAME", new ProcedureParameterMetaData("@NAME!true!expression!The name of the model"));
             this._ParametersMap.Add("@INPUT", new ProcedureParameterMetaData("@INPUT!true!expressionset!The explanatory variables"));
             this._ParametersMap.Add("@OUTPUT", new ProcedureParameterMetaData("@OUTPUT!true!expression!The model variable"));
-            this._ParametersMap.Add("@DATA", new ProcedureParameterMetaData("@DATA!true!expressionset!The calibration dataset"));
+            this._ParametersMap.Add("@DATA", new ProcedureParameterMetaData("@DATA!true!dataset!The calibration dataset"));
             this._ParametersMap.Add("@WEIGHT", new ProcedureParameterMetaData("@WEIGHT!false!expression!The weight variable"));
-            this._ParametersMap.Add("@WHERE", new ProcedureParameterMetaData("@WEIGHT!false!expression!The data filter"));
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
+            this._ParametersMap.Add("@WHERE", new ProcedureParameterMetaData("@WHERE!false!expression!The data filter"));
+            this._ParametersMap.Add("@PARTITIONS", new ProcedureParameterMetaData("@PARTITIONS!false!expression!The number of partitions to run"));
 
         }
 
@@ -806,16 +748,29 @@ namespace Equus.Clydesdale
             DataSet data = this._Parameters["@DATA"].Data;
             FNodeSet x = this._Parameters["@INPUT"].ExpressionSet;
             FNode y = this._Parameters["@OUTPUT"].Expression;
+
             FNode w = new FNodeValue(null, new Cell(1D));
             if (this._Parameters.Exists("@WEIGHT"))
                 w = this._Parameters["@WEIGHT"].Expression;
+
             Predicate p = Predicate.TrueForAll;
             if (this._Parameters.Exists("@WHERE"))
                 p = new Predicate(this._Parameters["@WHERE"].Expression);
 
+            int threads = 1;
+            if (this._Parameters.Exists("@PARTITIONS"))
+                threads = (int)this._Parameters["@PARTITIONS"].Expression.Evaluate().valueINT;
+
             // Model //
             Thoroughbred.ARizenTalent.LinearRegression lm = new Thoroughbred.ARizenTalent.LinearRegression(name, data, p, y, x, w);
-            lm.Render();
+            if (threads == 1)
+            {
+                lm.Render();
+            }
+            else
+            {
+                lm.PartitionedRender(threads);
+            }
 
             // Push the model to the home heap //
             //RecordSet rs1 = lm.ParameterData;
@@ -823,6 +778,7 @@ namespace Equus.Clydesdale
             //this.Home.ChunkHeap.Reallocate(rs1.Name, rs1);
             //this.Home.ChunkHeap.Reallocate(rs2.Name, rs2);
             this.Home.Models.Reallocate(lm.Name, lm);
+            this.Home.IO.AppendBuffer(lm.Statistics());
 
         }
 
@@ -843,9 +799,6 @@ namespace Equus.Clydesdale
             this._ParametersMap.Add("@WEIGHT", new ProcedureParameterMetaData("@WEIGHT!false!expression!The weight variable"));
             this._ParametersMap.Add("@WHERE", new ProcedureParameterMetaData("@WEIGHT!false!expression!The data filter"));
             this._ParametersMap.Add("@MAXITT", new ProcedureParameterMetaData("@MAXITT!false!expression!The maximum itterations the model will step"));
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
 
         }
 
@@ -902,9 +855,6 @@ namespace Equus.Clydesdale
             this._ParametersMap.Add("@MAXITT", new ProcedureParameterMetaData("@MAXITT!false!expression!The maximum itterations the model will step"));
             this._ParametersMap.Add("@STRICT", new ProcedureParameterMetaData("@STRICT!false!expression!True: Trace(Design) * Scale, False: I * Scale"));
             this._ParametersMap.Add("@BETA", new ProcedureParameterMetaData("@BETA!false!matrix!The initial weights"));
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
 
         }
 
@@ -968,9 +918,6 @@ namespace Equus.Clydesdale
             this._ParametersMap.Add("@WEIGHT", new ProcedureParameterMetaData("@WEIGHT!false!expression!The weight variable"));
             this._ParametersMap.Add("@WHERE", new ProcedureParameterMetaData("@WHERE!false!expression!The number of data clusters"));
             this._ParametersMap.Add("@MAXITT", new ProcedureParameterMetaData("@MAXITT!false!expression!The maximum itterations the model will step"));
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
 
         }
 
@@ -1016,7 +963,6 @@ namespace Equus.Clydesdale
 
     }
 
-
     public sealed class MinerFFNeural : Procedure
     {
 
@@ -1026,20 +972,83 @@ namespace Equus.Clydesdale
 
             this._ParametersMap.Add("@NAME", new ProcedureParameterMetaData("@NAME!true!expression!The name of the model"));
             this._ParametersMap.Add("@INPUT", new ProcedureParameterMetaData("@INPUT!true!expressionset!The explanatory variables"));
-            this._ParametersMap.Add("@OUTPUT", new ProcedureParameterMetaData("@OUTPUT!true!expressionset!The model variable"));
+            this._ParametersMap.Add("@OUTPUT", new ProcedureParameterMetaData("@OUTPUT!true!expressionset!The model variables"));
+            this._ParametersMap.Add("@OUTACT", new ProcedureParameterMetaData("@OUTACT!true!expression!The output activation function"));
+            this._ParametersMap.Add("@RULE", new ProcedureParameterMetaData("@RULE!ftrue!expression!The training rule"));
+            
             this._ParametersMap.Add("@DATA", new ProcedureParameterMetaData("@DATA!true!expressionset!The calibration dataset"));
             this._ParametersMap.Add("@WHERE", new ProcedureParameterMetaData("@WHERE!false!expression!The filter to apply to the data"));
-            this._ParametersMap.Add("@RULE", new ProcedureParameterMetaData("@RULE!false!expression!The training rule; defaults to iRPROP+"));
-            this._ParametersMap.Add("@HIDDEN1", new ProcedureParameterMetaData("@HIDDEN1!false!expressionset!The training rule; defaults to iRPROP+"));
-            string ErrorMessage = null;
-            if (!this.CheckInvoke(out ErrorMessage))
-                throw new Exception(ErrorMessage);
+            
+            this._ParametersMap.Add("@HIDDENMAP", new ProcedureParameterMetaData("@HIDDEN1!false!expression!A string that represents the hidden layers"));
 
         }
 
         public override void Invoke()
         {
 
+            // Get the name //
+            string name = this._Parameters["@NAME"].Expression.Evaluate().valueSTRING;
+
+            // Get the input data and any filter //
+            DataSet data = this._Parameters["@DATA"].Data;
+            Predicate where = Predicate.TrueForAll;
+            if (this._Parameters.Exists("@WHERE"))
+                where = new Predicate(this._Parameters["@WHERE"].Expression);
+
+            // Get inputs and outputs //
+            FNodeSet inputs = this._Parameters["@INPUT"].ExpressionSet;
+            FNodeSet outputs = this._Parameters["@OUTPUT"].ExpressionSet;
+
+            // Get the output activation and learning rule //
+            Numerics.ScalarFunction out_act = Numerics.ScalarFunctionFactory.Select(this._Parameters["@OUTACT"].Expression.Evaluate().valueSTRING);
+            string rule = this._Parameters["@RULE"].Expression.Evaluate().valueSTRING;
+
+            // Get the hidden layer mapping string //
+            string hidden_map = this._Parameters["@HIDDENMAP"].Expression.Evaluate().valueSTRING;
+
+            // Build the factor //
+            Thoroughbred.ManOWar.NeuralNetworkFactory factory = new Thoroughbred.ManOWar.NeuralNetworkFactory(name, data, where);
+            
+            // Add the data layer (inputs) and prediction layer (outputs) //
+            factory.AddDataLayer(true, inputs);
+            factory.AddPredictionLayer(outputs, out_act);
+
+            // Set the training rule and output activation //
+            factory.DefaultRule = rule;
+            factory.DefaultActivator = out_act;
+
+            /* Hidden layer
+             * 
+             * The map string should have the form:
+             * 'T1;T2;...;Tn'
+             * where each T represents one layer, and has the form:
+             *  Ti = 'ActivationFunction as string,Bias as bool, size as int'
+             * 
+             */
+            string[] layers = hidden_map.Split(';');
+            foreach (string hmap in layers)
+            {
+
+                string[] elements = hmap.Split(',');
+                Numerics.ScalarFunction activator = Numerics.ScalarFunctionFactory.Select(elements[0]);
+                bool bias_questionmark = (StringComparer.OrdinalIgnoreCase.Compare(elements[1], bool.TrueString) == 0);
+                int size = int.Parse(elements[2]);
+
+                factory.AddHiddenLayer(bias_questionmark, size, activator);
+
+            }
+
+            // Construct the network //
+            Thoroughbred.ManOWar.NeuralNetwork ffnn = factory.Construct();
+
+            // Render //
+            ffnn.Render();
+
+            // Push the result to the output stack //
+            this._Home.Models.Reallocate(name, ffnn);
+
+            // Push the statistics //
+            this._Home.IO.AppendBuffer(ffnn.Statistics());
 
         }
 

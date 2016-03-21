@@ -55,6 +55,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Xml.Linq" />
@@ -80,6 +81,7 @@
     <Compile Include="Andalusian\TNodePrintMatrix.cs" />
     <Compile Include="Andalusian\TNodeProcedure.cs" />
     <Compile Include="Andalusian\TNodeSet.cs" />
+    <Compile Include="Andalusian\TNodeWhile.cs" />
     <Compile Include="Calabrese\FNodeGradient.cs" />
     <Compile Include="Calabrese\CellFunctions.cs" />
     <Compile Include="Calabrese\FNode.cs" />
@@ -150,6 +152,7 @@
     <Compile Include="HScript\VisitorHelper.cs" />
     <Compile Include="HScript\Workspace.cs" />
     <Compile Include="Lipizzan\Basher.cs" />
+    <Compile Include="Lipizzan\Exchange.cs" />
     <Compile Include="Mustang\MapReduce\MapFactory.cs" />
     <Compile Include="Mustang\MapReduce\MRJob.cs" />
     <Compile Include="Mustang\MapReduce\Reducer.cs" />
@@ -232,6 +235,7 @@
     <Compile Include="Thoroughbred\ManOWar\SimpleNetwork.cs" />
     <Compile Include="Thoroughbred\Model.cs" />
     <Compile Include="Thoroughbred\Seabiscut\RowCluster.cs" />
+    <Compile Include="Thoroughbred\WarAdmiral\NeuralLayer.cs" />
     <Compile Include="_Notes\Notes.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -250,9 +254,7 @@
     </None>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Thoroughbred\WarAdmiral\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Content Include="HScriptTemplate.txt">
       <AutoGen>True</AutoGen>

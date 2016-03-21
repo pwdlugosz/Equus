@@ -486,6 +486,36 @@ namespace Equus.Horse
             return new Record(c);
         }
 
+        public static bool[] ToBool(Record R)
+        {
+            bool[] b = new bool[R.Count];
+            for (int i = 0; i < R.Count; i++)
+            {
+                b[i] = R._data[i].BOOL;
+            }
+            return b;
+        }
+
+        public static long[] ToLong(Record R)
+        {
+            long[] b = new long[R.Count];
+            for (int i = 0; i < R.Count; i++)
+            {
+                b[i] = R._data[i].INT;
+            }
+            return b;
+        }
+
+        public static double[] ToDouble(Record R)
+        {
+            double[] b = new double[R.Count];
+            for (int i = 0; i < R.Count; i++)
+            {
+                b[i] = R._data[i].DOUBLE;
+            }
+            return b;
+        }
+
         // Implementations //
         /// <summary>
         /// Compares one record to the current record

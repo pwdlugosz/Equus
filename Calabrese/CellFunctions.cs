@@ -1046,9 +1046,41 @@ namespace Equus.Calabrese
 
     }
 
+    public sealed class CellFuncFKIsPrime : CellFuncFixedKnown
+    {
+
+        public CellFuncFKIsPrime()
+            : base(FunctionNames.FUNC_ISPRIME, 1, CellAffinity.BOOL)
+        {
+        }
+
+        public override Cell Evaluate(params Cell[] Data)
+        {
+            if (Data[0].AFFINITY != CellAffinity.INT)
+                return Cell.NULL_BOOL;
+
+            long n = Data[0].INT;
+            if (n <= 1)
+                return Cell.FALSE;
+
+            if (n < 6)
+                return (n == 2 || n == 3) ? Cell.TRUE : Cell.FALSE;
+
+            if (((n + 1) % 6 != 0) && ((n - 1) % 6 != 0))
+                return Cell.FALSE;
+
+            for (long i = 6; i <= (long)Math.Sqrt(n) + 1; i++)
+                if (n % i == 0)
+                    return Cell.FALSE;
+            return Cell.TRUE;
+
+        }
+
+    }
+
     #endregion
 
-    // Fixed parameter, returns type of first argument //
+    // Fixed parameter, returns type based on hierarchy //
     #region FixedVariableFunctions
 
     public abstract class CellFuncFixedVariable : CellFunction
@@ -2402,6 +2434,7 @@ namespace Equus.Calabrese
         public const string FUNC_FROM_HEX = "fromhex";
         public const string FUNC_NDIST = "ndist";
         public const string FUNC_THREAD_ID = "threadid";
+        public const string FUNC_ISPRIME = "isprime";
         
         // Differentiable Functions //
         public const string FUNC_LOG = "log";
@@ -2561,6 +2594,7 @@ namespace Equus.Calabrese
             { FunctionNames.FUNC_FROM_HEX, () => { return new CellFuncFKFromHEX();}},
             { FunctionNames.FUNC_NDIST, () => { return new CellFuncFKNormal();}},
             { FunctionNames.FUNC_THREAD_ID, () => { return new CellFuncFKThreadID();}},
+            { FunctionNames.FUNC_ISPRIME, () => { return new CellFuncFKIsPrime();}},
 
             { FunctionNames.FUNC_LOG, () => { return new CellFuncFVLog();}},
             { FunctionNames.FUNC_EXP, () => { return new CellFuncFVExp();}},

@@ -20,10 +20,14 @@ namespace Equus.HScript
     public sealed class HScriptProcessor
     {
 
+        private bool _CanRun = true;
+        private List<string> _CompileErrorMessages;
+
         public HScriptProcessor(Workspace UseHome)
         {
             this.Home = UseHome;
-            this.CallStack = new Stack<HScriptParser.CommandContext>();
+            this.Commands = new List<HScriptParser.CommandContext>();
+            this._CompileErrorMessages = new List<string>();
         }
 
         public Workspace Home
@@ -32,14 +36,18 @@ namespace Equus.HScript
             private set;
         }
 
-        public Stack<HScriptParser.CommandContext> CallStack
+        public List<HScriptParser.CommandContext> Commands
         {
             get;
             set;
         }
 
-        internal void LoadCallStack(string Script)
+        internal void LoadCommandStack(string Script)
         {
+
+            // Clear the current stack //
+            this.Commands.Clear();
+            this._CompileErrorMessages.Clear();
 
             // Create a token stream and do lexal analysis //
             AntlrInputStream TextStream = new AntlrInputStream(Script);
@@ -48,89 +56,81 @@ namespace Equus.HScript
             // Parse the script //
             CommonTokenStream HorseTokenStream = new CommonTokenStream(HorseLexer);
             HScriptParser HorseParser = new HScriptParser(HorseTokenStream);
-            //HorseParser.RemoveErrorListeners();
-            //HorseParser.AddErrorListener(new ParserErrorListener());
+            HorseParser.RemoveErrorListeners();
+            HorseParser.AddErrorListener(new ParserErrorListener());
             
             // Create an executer object //
             CommandVisitor processor = new CommandVisitor(this.Home);
-
-            // Create a temp structure to holde the context values //
-            List<HScriptParser.CommandContext> cache = new List<HScriptParser.CommandContext>();
 
             // Load the call stack //
             try
             {
                 foreach (HScriptParser.CommandContext context in HorseParser.compile_unit().command_set().command())
-                    cache.Add(context);
+                {
+                    this.Commands.Add(context);
+                }
             }
             catch (Exception e)
             {
-                Comm.WriteLine(e.Message);
-                throw e;
+                this._CompileErrorMessages.Add(e.Message);
             }
 
-            // Reverse the cache //
-            cache.Reverse();
+        }
 
-            // Append the cache to the call stack //
-            foreach (HScriptParser.CommandContext ctx in cache)
-                this.CallStack.Push(ctx);
+        internal void RenderCommand(HScriptParser.CommandContext Context, CommandVisitor Processor)
+        {
+
+            // Consume //
+            CommandPlan plan = Processor.Visit(Context);
+            
+
+            // Add the header to the plan buffer //
+            if (!this.Home.SupressIO)
+                this.Home.IO.Communicate();
+
+            // Execute //
+            plan.Execute();
+
+            // Communicate //
+            if (!this.Home.SupressIO)
+            {
+
+                // Append the write stack //
+                this.Home.IO.Communicate(plan.MessageText());
+
+                // Dump the buffer //
+                this.Home.IO.FlushStringBuffer();
+                this.Home.IO.FlushRecordBuffer();
+
+            }
 
         }
 
         public void Execute(string Script)
         {
 
+            // Load the command stack //
+            this.LoadCommandStack(Script);
+
+            // Check to see if there were parser errors //
+            if (this._CompileErrorMessages.Count != 0)
+            {
+                this.Home.IO.AppendBuffer("Parsing Error");
+                foreach (string s in this._CompileErrorMessages)
+                    this.Home.IO.AppendBuffer('\t' + s);
+                this.Home.IO.AppendBuffer("Process terminated");
+                this.Home.IO.FlushStringBuffer();
+                return;
+            }
+
             // Create an executer object //
             CommandVisitor processor = new CommandVisitor(this.Home);
             
-            // Load the call stack //
-            this.LoadCallStack(Script);
-
             // Run ... //
-            while(this.CallStack.Count != 0)
+            foreach(HScriptParser.CommandContext ctx in this.Commands)
             {
 
-                // Load the context //
-                HScriptParser.CommandContext ctx = this.CallStack.Pop();
-
-                // Check if this is an execution //
-                if (ctx.inline_script() != null)
-                {
-
-                    // Load the call stack //
-                    ScriptHelper.AppendCallStack(this, new ExpressionVisitor(null, this.Home), ctx.inline_script());
-
-                    // Pop the last value //
-                    if (this.CallStack.Count != 0)
-                        ctx = this.CallStack.Pop();
-                    else // rare occasion when exec is the last call, but what we are executing is nothing
-                        return;
-
-                }
-
-                // Consume //
-                CommandPlan plan = processor.Visit(ctx);
-
-                // Add the header to the plan buffer //
-                if (!this.Home.SupressIO)
-                    this.Home.IO.Communicate();
-
-                // Execute //
-                plan.Execute();
-
-                // Communicate //
-                if (!this.Home.SupressIO)
-                {
-
-                    // Append the write stack //
-                    this.Home.IO.Communicate(plan.MessageText());
-
-                    // Dump the buffer //
-                    this.Home.IO.FlushStringBuffer();
-                    this.Home.IO.FlushRecordBuffer();
-
-                }
+                this.RenderCommand(ctx, processor);
 
             }
 

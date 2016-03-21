@@ -74,6 +74,14 @@ namespace Equus.Calabrese
                 n.AssignRegister(Memory);
         }
 
+        public static FNode Generate(FNode Parent, Func<Cell[], Cell> Delegate, int Parameters, CellAffinity ReturnAffinity, string ToString)
+        {
+
+            CellFunction f = new CellFunction(ToString, Parameters, Delegate, ReturnAffinity, (x,y) => { return ToString; });
+            return new FNodeResult(Parent, f);
+
+        }
+
     }
 
 }

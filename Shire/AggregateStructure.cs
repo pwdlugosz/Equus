@@ -542,7 +542,7 @@ namespace Equus.Shire
 
             if (Data._Headers.Count == 0)
             {
-                Data._Cache.WriteToFinal(Output);
+                Data._Cache.WriteToFinal(Output, Fields);
                 return (long)Data._Cache.Count;
             }
 

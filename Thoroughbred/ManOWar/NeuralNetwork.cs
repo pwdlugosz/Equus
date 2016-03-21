@@ -7,6 +7,7 @@ using System.Diagnostics;
 using Equus.Horse;
 using Equus.Gidran;
 using Equus.Calabrese;
+using Equus.Shire;
 
 namespace Equus.Thoroughbred.ManOWar
 {
@@ -14,7 +15,7 @@ namespace Equus.Thoroughbred.ManOWar
     /// <summary>
     /// Represents a feed-forward neural network
     /// </summary>
-    public sealed class NeuralNetwork
+    public sealed class NeuralNetwork : Model
     {
 
         internal const long MAX_IN_MEM_CELL_COUNT = 8388608; // 1024 x 1024 x 8 = maxes out at 64mb for the matrix
@@ -23,7 +24,7 @@ namespace Equus.Thoroughbred.ManOWar
         private int _MaxEpochs = 5000;
         private int _ActualEpochs = -1;
         private double _ExistSSE = 0.005;
-        private int _RandomizerSeed = 127;
+        private int _RandomizerSeed = 128;
 
         // Model Structures //
         private NodeLinkMaster _Links;
@@ -34,9 +35,10 @@ namespace Equus.Thoroughbred.ManOWar
 
         // Metadata //
         private TimeSpan _RunTime;
+        private string _name = "FF_NN";
 
         // Constructor //
-        public NeuralNetwork(NodeLinkMaster Links, NodeSet Nodes, ResponseNodeSet Responses, NeuralRule Rule, Matrix Data)
+        public NeuralNetwork(string Name, NodeLinkMaster Links, NodeSet Nodes, ResponseNodeSet Responses, NeuralRule Rule, Matrix Data)
         {
 
             // Set values //
@@ -45,10 +47,11 @@ namespace Equus.Thoroughbred.ManOWar
             this._Responses = Responses;
             this._Rule = Rule;
             this._Data = Data;
+            this._name = Name;
 
             // Initialize //
             this.Initialize();
-
+            
         }
 
         // Properties //
@@ -99,6 +102,18 @@ namespace Equus.Thoroughbred.ManOWar
             get { return this._Responses; }
         }
 
+        public override string Name
+        {
+            get
+            {
+                return this._name;
+            }
+            protected set
+            {
+                this._name = value;
+            }
+        }
+
         // Set up methods //
         internal void Initialize()
         {
@@ -140,7 +155,7 @@ namespace Equus.Thoroughbred.ManOWar
         }
 
         // Train Methods //
-        public void Render()
+        public override void Render()
         {
 
             // Start stopwatch //
@@ -149,6 +164,9 @@ namespace Equus.Thoroughbred.ManOWar
             // All EPOCHS //
             for (int current_epoch = 0; current_epoch < this._MaxEpochs; current_epoch++)
             {
+
+                // Reset the MSE //
+                this._Responses.ResetSSE();
 
                 // All data points //
                 for (int matrix_row = 0; matrix_row < this._Data.RowCount; matrix_row++)
@@ -180,9 +198,9 @@ namespace Equus.Thoroughbred.ManOWar
 
                 // Reset the gradients //
                 this._Links.Reset();
-                
-                // Reset the MSE //
-                this._Responses.ResetSSE();
+
+                //if (current_epoch % 100 == 0)
+                //    Console.WriteLine("MSE {0}", this._Responses.MSE);
 
             }
 
@@ -228,7 +246,7 @@ namespace Equus.Thoroughbred.ManOWar
 
                 // Write the string //
                 Comm.WriteLine(this._Responses.AEString);
-
+                
             }
 
 
@@ -247,6 +265,133 @@ namespace Equus.Thoroughbred.ManOWar
 
         }
 
+        public override void Extend(Shire.RecordWriter Output, DataSet Data, FNodeSet Inputs, FNodeSet OtherKeepValues, Predicate Where)
+        {
+
+            // Combine the keep variables and the expected nodes //
+            FNodeSet nodes = FNodeSet.Union(OtherKeepValues.CloneOfMe(), this.Responses.Expected);
+
+            // Open the reader //
+            RecordReader rr = Data.OpenReader(Where);
+
+            // Create a memory structure //
+            StaticRegister mem = new StaticRegister(Data.Columns);
+
+            // Assign both the input set and output set to the memory structure //
+            nodes.AssignRegister(mem);
+            Inputs.AssignRegister(mem);
+
+            // Run through each record //
+            while (rr.EndOfData == false)
+            {
+                    
+                // Assign memory //
+                mem.Assign(rr.ReadNext());
+
+                // Get the array of doubles for the network //
+                double[] d = Record.ToDouble(Inputs.Evaluate());
+
+                // Render each node //
+                this._Nodes.Render(d);
+
+                // Output //
+                Record t = nodes.Evaluate();
+                Output.Insert(t);
+
+            }
+
+        }
+
+        public override RecordSet Extend(DataSet Data, FNodeSet Inputs, FNodeSet OtherKeepValues, Predicate Where)
+        {
+
+            // Combine the keep variables and the expected nodes //
+            FNodeSet nodes = FNodeSet.Union(OtherKeepValues.CloneOfMe(), this.Responses.Expected);
+
+            // Open the reader //
+            RecordReader rr = Data.OpenReader(Where);
+
+            // Create the output table and stream //
+            RecordSet rs = new RecordSet(nodes.Columns);
+            RecordWriter Output = rs.OpenWriter();
+
+            // Create a memory structure //
+            StaticRegister mem = new StaticRegister(Data.Columns);
+
+            // Assign both the input set and output set to the memory structure //
+            nodes.AssignRegister(mem);
+            Inputs.AssignRegister(mem);
+
+            // Run through each record //
+            while (rr.EndOfData == false)
+            {
+
+                // Assign memory //
+                mem.Assign(rr.ReadNext());
+
+                // Get the array of doubles for the network //
+                double[] d = Record.ToDouble(Inputs.Evaluate());
+
+                // Render each node //
+                this._Nodes.Render(d);
+
+                // Output //
+                Record t = nodes.Evaluate();
+                Output.Insert(t);
+
+            }
+
+            Output.Close();
+
+            return rs;
+
+        }
+
+        public override Table Extend(string Dir, string Name, DataSet Data, FNodeSet Inputs, FNodeSet OtherKeepValues, Predicate Where)
+        {
+
+            // Combine the keep variables and the expected nodes //
+            FNodeSet nodes = FNodeSet.Union(OtherKeepValues.CloneOfMe(), this.Responses.Expected);
+
+            // Open the reader //
+            RecordReader rr = Data.OpenReader(Where);
+
+            // Create the output table and stream //
+            Table q = new Table(Dir, Name, nodes.Columns);
+            RecordWriter Output = q.OpenWriter();
+
+            // Create a memory structure //
+            StaticRegister mem = new StaticRegister(Data.Columns);
+
+            // Assign both the input set and output set to the memory structure //
+            nodes.AssignRegister(mem);
+            Inputs.AssignRegister(mem);
+
+            // Run through each record //
+            while (rr.EndOfData == false)
+            {
+
+                // Assign memory //
+                mem.Assign(rr.ReadNext());
+
+                // Get the array of doubles for the network //
+                double[] d = Record.ToDouble(Inputs.Evaluate());
+
+                // Render each node //
+                this._Nodes.Render(d);
+
+                // Output //
+                Record t = nodes.Evaluate();
+                Output.Insert(t);
+
+            }
+
+            Output.Close();
+
+            return q;
+        
+        }
+
         // Strings //
         public string ShortStatistics()
         {
@@ -254,7 +399,7 @@ namespace Equus.Thoroughbred.ManOWar
                 this._Responses.Responses.Count, this._Nodes.Nodes.Count, this._ActualEpochs, Math.Round(this._Responses.MSE, 4), this._RunTime);
         }
 
-        public string Statistics()
+        public override string Statistics()
         {
 
             StringBuilder sb = new StringBuilder();
@@ -277,6 +422,8 @@ namespace Equus.Thoroughbred.ManOWar
         }
 
     }
+
+
 
 
 }

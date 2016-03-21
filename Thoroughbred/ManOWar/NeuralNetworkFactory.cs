@@ -35,9 +35,10 @@ namespace Equus.Thoroughbred.ManOWar
         private FNodeSet _XValues;
         private FNodeSet _YValues;
         private Predicate _Where;
+        private string _name;
 
         // Constructors //
-        public NeuralNetworkFactory(DataSet Data, Predicate Where)
+        public NeuralNetworkFactory(string Name, DataSet Data, Predicate Where)
         {
             this._HiddenLayers = new List<NN_Layer>();
             this._Links = new NodeLinkMaster();
@@ -46,6 +47,7 @@ namespace Equus.Thoroughbred.ManOWar
             this.DefaultReduction = new NodeReductionLinear();
             this._SourceData = Data;
             this._Where = Where;
+            this._name = Name;
         }
 
         // Defaults //
@@ -151,7 +153,7 @@ namespace Equus.Thoroughbred.ManOWar
             NeuralRule rule = RuleFactory.Construct(this.DefaultRule, responses);
 
             // Construct //
-            return new NeuralNetwork(this._Links, nodes, responses, rule, scrubber.ScrubbedData);
+            return new NeuralNetwork(this._name, this._Links, nodes, responses, rule, scrubber.ScrubbedData);
 
         }
 
@@ -304,8 +306,14 @@ namespace Equus.Thoroughbred.ManOWar
         private void Render(DataSet Data, FNodeSet X_Values, FNodeSet Y_Values, Predicate Where)
         {
 
+            FNodeSet outputs = new FNodeSet();
+            for (int i = 0; i < Y_Values.Count; i++)
+            {
+                outputs.Add("Y_" + Y_Values.Alias(i), Y_Values[i].CloneOfMe());
+            }
+
             // Build the reader fnode-set //
-            FNodeSet nodes = FNodeSet.Union(X_Values, Y_Values);
+            FNodeSet nodes = FNodeSet.Union(X_Values, outputs);
 
             // Construct the keys //
             this.InputKey = Key.Build(X_Values.Count);

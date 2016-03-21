@@ -57,6 +57,13 @@ AND : A N D;
 XOR : X O R;
 NOT : N O T | '!';
 
+// Files //
+K_CREATE_FILE : C R E A T E '_' F I L E;
+K_OPEN_FILE : O P E N '_' F I L E;
+K_CLOSE_FILE : C L O S E '_' F I L E;
+K_WRITE_FILE : W R I T E '_' F I L E;
+K_READ_FILE : R E A D '_' F I L E;
+
 // Keywods //
 K_AGGREGATE : A G G R E G A T E;
 K_ALL : A L L;
@@ -89,6 +96,7 @@ K_IN : I N;
 K_INITIAL : I N I T | I N I T I A L;
 K_INLINE : I N L I N E;
 K_INNER : I N N E R;
+K_INSERT : I N S E R T;
 K_INTO : I N T O;
 K_IS : I S;
 K_KEEP : K E E P;
@@ -139,12 +147,12 @@ T_INT : I N T;
 T_STRING : S T R I N G;
 
 // Cell Literal Support //
-NULL_BOOL : '@@' N U L L '_' B O O L;
-NULL_INT : '@@' N U L L '_' I N T;
-NULL_DATE : '@@' N U L L '_' D A T E;
-NULL_DOUBLE : '@@' N U L L '_' D O U B L E;
-NULL_STRING : '@@' N U L L '_' S T R I N G;
-NULL_BLOB : '@@' N U L L '_' B L O B;
+NULL_BOOL : '#' N U L L '_' B O O L;
+NULL_INT : '#' N U L L '_' I N T;
+NULL_DATE : '#' N U L L '_' D A T E;
+NULL_DOUBLE : '#' N U L L '_' D O U B L E;
+NULL_STRING : '#' N U L L '_' S T R I N G;
+NULL_BLOB : '#' N U L L '_' B L O B;
 
 LITERAL_BOOL 
 	: T R U E 
@@ -177,8 +185,7 @@ LITERAL_STRING
 CTERM : '%;';
 
 // Scalar Identifier Parameter Text //
-//MATRIX : IDENTIFIER '[' ']';
-RECORD_REF : '@@' R E C O R D;
+BEACON : '@@' IDENTIFIER;
 SCALAR : '@' IDENTIFIER;
 IDENTIFIER : [a-zA-Z_] [a-zA-Z_0-9]*;
 

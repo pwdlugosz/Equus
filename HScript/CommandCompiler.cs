@@ -323,10 +323,10 @@ namespace Equus.HScript
                     idx2 = data2.Columns.ColumnIndex(c2);
 
                     // Check for invalid keys //
-                    if (idx1 == -1) 
-                        throw new Exception(string.Format("Column '{0}' does not exist in '{1}'", c1, idx1));
+                    if (idx1 == -1)
+                        throw new Exception(string.Format("Column '{0}' does not exist in '{1}'", c1, alias1));
                     if (idx2 == -1)
-                        throw new Exception(string.Format("Column '{0}' does not exist in '{1}'", c2, idx2));
+                        throw new Exception(string.Format("Column '{0}' does not exist in '{1}'", c2, alias2));
 
                 }
                 else if (a1 == alias2 && a2 == alias1)
@@ -456,7 +456,7 @@ namespace Equus.HScript
 
         }
 
-        public static CreateChunkPlan RenderCreateChunk(Workspace Home, HScriptParser.Crudam_declare_tableContext context)
+        public static CreateChunkPlan RenderCreateChunk(Workspace Home, HScriptParser.Crudam_create_tableContext context)
         {
 
             ExpressionVisitor exp_vis = new ExpressionVisitor(null, Home);
@@ -472,7 +472,7 @@ namespace Equus.HScript
                     VisitorHelper.GetSize(ctx.type(), true));
             }
 
-            string name = context.IDENTIFIER().GetText();
+            string name = context.full_table_name().table_name().IDENTIFIER().GetText();
 
             return new CreateChunkPlan(name, columns, Home);
 
