@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Equus.Horse;
 using Equus.Calabrese;
 using Equus.Fjord;
+using Equus.Shire;
 
 namespace Equus.HScript.Parameters
 {
@@ -32,6 +33,8 @@ namespace Equus.HScript.Parameters
 
         public void Add(string Name, HParameter Value)
         {
+            if (this._parameters.ContainsKey(Name))
+                throw new HScriptCompileException("Parameter '{0}' already exists", Name);
             this._parameters.Add(Name, Value);
         }
 
@@ -58,6 +61,11 @@ namespace Equus.HScript.Parameters
         public void Add(string Name, MNode Value)
         {
             this.Add(Name, new HParameter(Value));
+        }
+
+        public void Add(string Name, CellHeap Heap, string ScalarName)
+        {
+            this.Add(Name, Heap, ScalarName);
         }
 
         public bool Exists(string Name)

@@ -72,7 +72,9 @@
     <Compile Include="Andalusian\TNodeEscapeLoop.cs" />
     <Compile Include="Andalusian\TNodeEscapeRead.cs" />
     <Compile Include="Andalusian\TNodeExecute.cs" />
+    <Compile Include="Andalusian\TNodeFileFactory.cs" />
     <Compile Include="Andalusian\TNodeFor.cs" />
+    <Compile Include="Andalusian\TNodeGeneric.cs" />
     <Compile Include="Andalusian\TNodeIf.cs" />
     <Compile Include="Andalusian\TNodeMatrixAssign.cs" />
     <Compile Include="Andalusian\TNodeMatrixUnitAssign.cs" />
@@ -102,6 +104,8 @@
     <Compile Include="Calabrese\Predicate.cs" />
     <Compile Include="Clydesdale\Procedure.cs" />
     <Compile Include="Clydesdale\SystemProcedures.cs" />
+    <Compile Include="Exchange\BaseExchange.cs" />
+    <Compile Include="FileIO\FileIOManager.cs" />
     <Compile Include="Fjord\MNode.cs" />
     <Compile Include="Fjord\MNodeAdd.cs" />
     <Compile Include="Fjord\MNodeAddScalar.cs" />
@@ -127,6 +131,7 @@
     <Compile Include="Horse\Cell\CellAffinity.cs" />
     <Compile Include="Horse\Cell\CellAffinityHelper.cs" />
     <Compile Include="Horse\Cell\CellValues.cs" />
+    <Compile Include="Horse\Exceptions\Exceptions.cs" />
     <Compile Include="Horse\Keys\Key.cs" />
     <Compile Include="Horse\Keys\KeyAffinity.cs" />
     <Compile Include="Horse\Keys\SortKeyFactory.cs" />
@@ -134,7 +139,6 @@
     <Compile Include="Horse\Serialize\Splitter.cs" />
     <Compile Include="HScript\ActionVisitor.cs" />
     <Compile Include="HScript\CommandCompiler.cs" />
-    <Compile Include="HScript\CommandReturn.cs" />
     <Compile Include="HScript\CommandVisitor.cs" />
     <Compile Include="HScript\ExpressionVisitor.cs" />
     <Compile Include="HScript\Parameters\HParameter.cs" />
@@ -189,6 +193,7 @@
     <Compile Include="QuarterHorse\CommandPlan.cs" />
     <Compile Include="QuarterHorse\CreatePlan.cs" />
     <Compile Include="QuarterHorse\DeletePlan.cs" />
+    <Compile Include="QuarterHorse\FilePlan.cs" />
     <Compile Include="QuarterHorse\GenericPlan.cs" />
     <Compile Include="QuarterHorse\MergePlan.cs" />
     <Compile Include="QuarterHorse\PartitionedAggregatePlan.cs" />

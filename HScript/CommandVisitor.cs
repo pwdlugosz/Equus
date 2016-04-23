@@ -127,14 +127,27 @@ namespace Equus.HScript
 
         }
 
-        /* QUERY ACTIONS 
-         * 
-         * 
-         */
+        // Actions //
         public override CommandPlan VisitCommand_action(HScriptParser.Command_actionContext context)
         {
 
             ActionPlan plan = CommandCompiler.RenderActionPlan(this.Home, context.query_action());
+            return plan;
+
+        }
+
+        // File //
+        public override CommandPlan VisitFile_method(HScriptParser.File_methodContext context)
+        {
+
+            string name_string = context.file_name().GetText();
+            ExpressionVisitor vis = new ExpressionVisitor(null, this.Home);
+            FNodeSet nodes = new FNodeSet();
+            foreach (HScriptParser.ExpressionContext ctx in context.expression())
+            {
+                nodes.Add(vis.ToNode(ctx));
+            }
+            FileIO.FileOjbectLibrary.FilePlan plan = new FileIO.FileOjbectLibrary.FilePlan(name_string, nodes, this.Home.GlobalHeap.Scalars);
             return plan;
 
         }

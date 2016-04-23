@@ -13,7 +13,8 @@ namespace Equus.HScript.Parameters
         Expression,
         ExpressionSet,
         Lambda,
-        Matrix
+        Matrix,
+        Scalar
     }
 
 }

@@ -27,7 +27,6 @@ namespace Equus.HScript
         private Communicator _IO;
         private Dictionary<string, DataSet> _OpenData;
         private Heap<Model> _Models;
-        private Heap<FNode> _Beacons;
         
         public Workspace(string TempDirectory, Communicator UseIO)
         {
@@ -40,7 +39,6 @@ namespace Equus.HScript
             this._Lambdas = new Heap<Lambda>();
             this._OpenData = new Dictionary<string, DataSet>(StringComparer.OrdinalIgnoreCase);
             this._Models = new Heap<Model>();
-            this._Beacons = new Heap<FNode>();
             
             // Add the temp connections //
             this._Connections.Allocate(TEMP_DB_ALIAS, TempDirectory);
@@ -81,11 +79,6 @@ namespace Equus.HScript
         public Heap<Model> Models
         {
             get { return this._Models; }
-        }
-
-        public Heap<FNode> Beacons
-        {
-            get { return this._Beacons; }
         }
 
         public string TempSpace

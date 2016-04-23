@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Equus.Horse;
 using Equus.Calabrese;
 using Equus.Fjord;
+using Equus.Shire;
 
 namespace Equus.HScript.Parameters
 {
@@ -19,6 +20,8 @@ namespace Equus.HScript.Parameters
         private FNodeSet _expression_set;
         private Lambda _lambda;
         private MNode _matrix;
+        private CellHeap _heap;
+        private int _ref;
 
         public HParameter(DataSet Value)
         {
@@ -53,6 +56,13 @@ namespace Equus.HScript.Parameters
             this._matrix = Value;
         }
 
+        public HParameter(CellHeap Heap, string Value)
+        {
+            this._heap = Heap;
+            this._ref = this._heap.GetPointer(Value);
+            this._affinity = HParameterAffinity.Scalar;
+        }
+
         public HParameterAffinity Affinity
         {
             get { return this._affinity; }
@@ -81,6 +91,16 @@ namespace Equus.HScript.Parameters
         public MNode Matrix
         {
             get { return this._matrix; }
+        }
+
+        public CellHeap Heap
+        {
+            get { return this._heap; }
+        }
+
+        public int HeapRef
+        {
+            get { return this._ref; }
         }
 
     }

@@ -33,7 +33,7 @@ namespace Equus.HScript
             {
                 if (Enviro.ChunkHeap.Exists(t_name))
                     return Enviro.ChunkHeap[t_name];
-                throw new Exception(string.Format("Global chunk '{0}' does not exist", t_name));
+                throw new HScriptCompileException("Global chunk '{0}' does not exist", t_name);
             }
 
             // Table context //
@@ -42,10 +42,10 @@ namespace Equus.HScript
                 string d_base = context.database_name().IDENTIFIER().GetText();
                 if (Enviro.Exists(d_base, t_name))
                     return Enviro.GetStaticTable(d_base, t_name);
-                throw new Exception(string.Format("Table '{0}' does not exist", t_name));
+                throw new HScriptCompileException("Table '{0}' does not exist", t_name);
             }
 
-            throw new Exception();
+            throw new HScriptCompileException("Data '{0}' does not exist in memory or on disk", t_name);
 
         }
 
@@ -70,7 +70,7 @@ namespace Equus.HScript
             {
                 if (Enviro.ChunkHeap.Exists(name))
                     return Enviro.ChunkHeap[name];
-                throw new Exception(string.Format("Chunk '{0}' does not exist", name));
+                throw new HScriptCompileException(string.Format("Chunk '{0}' does not exist", name));
             }
 
             // Static -- Append //
@@ -79,7 +79,7 @@ namespace Equus.HScript
                 string fullname = db + "." + name;
                 if (Enviro.Exists(db, name))
                     return Enviro.GetStaticTable(db, name);
-                throw new Exception(string.Format("Table '{0}' does not exist", fullname));
+                throw new HScriptCompileException(string.Format("Table '{0}' does not exist", fullname));
             }
 
             // Global -- Create New //
@@ -118,7 +118,7 @@ namespace Equus.HScript
             {
                 if (Enviro.ChunkHeap.Exists(name))
                     return Enviro.ChunkHeap[name].OpenWriter();
-                throw new Exception(string.Format("Chunk '{0}' does not exist", name));
+                throw new HScriptCompileException(string.Format("Chunk '{0}' does not exist", name));
             }
 
             // Static -- Append //
@@ -127,7 +127,7 @@ namespace Equus.HScript
                 string fullname = db + "." + name;
                 if (Enviro.Exists(db, name))
                     return Enviro.GetStaticTable(db, name).OpenWriter();
-                throw new Exception(string.Format("Table '{0}' does not exist", fullname));
+                throw new HScriptCompileException(string.Format("Table '{0}' does not exist", fullname));
             }
 
             // Global -- Create New //
@@ -188,13 +188,13 @@ namespace Equus.HScript
             {
                 string d_base = context.database_name().IDENTIFIER().GetText();
                 if (!Enviro.Connections.Exists(d_base))
-                    throw new Exception(string.Format("Connection to '{0}' does not exist", d_base));
+                    throw new HScriptCompileException("Connection to '{0}' does not exist", d_base);
                 string dir = Enviro.Connections[d_base];
                 Table t = new Table(dir, t_name, Columns);
                 return t;
             }
 
-            throw new Exception();
+            throw new HScriptCompileException("Cannot create data '{0}'", t_name);
 
         }
 
@@ -591,6 +591,8 @@ namespace Equus.HScript
                     parmset.Add(name, VisitorHelper.RenderLambda(Home, ctx.lambda_unit()));
                 else if (ctx.matrix_expression() != null)
                     parmset.Add(name, mat_vis.ToMatrix(ctx.matrix_expression()));
+                else if (ctx.K_OUT() != null)
+                    parmset.Add(name, Home.GlobalHeap.Scalars, ctx.IDENTIFIER().GetText());
 
             }
 

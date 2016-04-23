@@ -406,12 +406,12 @@ namespace Equus.HScript
 
             // Lookup the function //
             if (!CellFunctionFactory.Exists(func_name))
-                throw new Exception(string.Format("Function '{0}' does not exist", func_name));
+                throw new HScriptCompileException("Function '{0}' does not exist", func_name);
             CellFunction func_ref = CellFunctionFactory.LookUp(func_name);
 
             // Check the variable count //
             if (func_ref.ParamCount != -1 && func_ref.ParamCount != context.expression().Count)
-                throw new Exception(string.Format("Function '{0}' expects {1} parameters but was passed {2} parameters", func_name, func_ref.ParamCount, context.expression().Count));
+                throw new HScriptCompileException("Function '{0}' expects {1} parameters but was passed {2} parameters", func_name, func_ref.ParamCount, context.expression().Count);
 
             // Create the node //
             FNode t = new FNodeResult(this.MasterNode, func_ref);
@@ -456,7 +456,7 @@ namespace Equus.HScript
             }
             else
             {
-                throw new Exception(string.Format("Matrix does not exist in either the local or global heaps '{0}'", name));
+                throw new HScriptCompileException("Matrix does not exist in either the local or global heaps '{0}'", name);
             }
 
         }
@@ -488,7 +488,7 @@ namespace Equus.HScript
             }
             else
             {
-                throw new Exception(string.Format("Matrix does not exist in either the local or global heaps '{0}'", name));
+                throw new HScriptCompileException("Matrix does not exist in either the local or global heaps '{0}'", name);
             }
 
         }
@@ -497,6 +497,8 @@ namespace Equus.HScript
         {
 
             string name = context.function_name().GetText();
+            if (!this.Lambdas.Exists(name))
+                throw new HScriptCompileException("Lambda '{0}' does not exist", name);
             Lambda mu = this.Lambdas[name];
 
             List<FNode> nodes = new List<FNode>();
@@ -666,7 +668,7 @@ namespace Equus.HScript
             if (this.GlobalHeap.Scalars.Exists(var_name))
                 return new FNodeHeapRef(this.MasterNode, this.GlobalHeap, var_name);
 
-            throw new Exception(string.Format("Variable '{0}' does not exist anywhere", var_name));
+            throw new HScriptCompileException("Variable '{0}' does not exist in the global heap, the local heap, or any known table", var_name);
 
         }
 
@@ -678,12 +680,12 @@ namespace Equus.HScript
 
             // Check that the table exisits //
             if (!this.Columns.ContainsKey(table_alias))
-                throw new Exception(string.Format("Table alias '{0}' does not exist", table_alias));
+                throw new HScriptCompileException("Table alias '{0}' does not exist", table_alias);
 
             // Check that the column exists //
             int idx = this.Columns[table_alias].ColumnIndex(var_name);
             if (idx == -1)
-                throw new Exception(string.Format("Field '{0}' does not exist in '{1}'", var_name, table_alias));
+                throw new HScriptCompileException("Field '{0}' does not exist in '{1}'", var_name, table_alias);
 
             // Return node //
             Register mem = (this.Registers[table_alias] == null) ? null : this.Registers[table_alias];
@@ -699,7 +701,7 @@ namespace Equus.HScript
             string var_name = context.local_variable().IDENTIFIER().GetText();
             if (this.LocalHeap.Scalars.Exists(var_name))
                 return new FNodeHeapRef(this.MasterNode, this.LocalHeap, var_name);
-            throw new Exception(string.Format("Variable '{0}' is not a local variable", var_name));
+            throw new HScriptCompileException("Variable '{0}' is not a local variable", var_name);
 
         }
 
@@ -709,7 +711,7 @@ namespace Equus.HScript
             string var_name = context.global_variable().IDENTIFIER().GetText();
             if (this.GlobalHeap.Scalars.Exists(var_name))
                 return new FNodeHeapRef(this.MasterNode, this.GlobalHeap, var_name);
-            throw new Exception(string.Format("Variable '{0}' is not a global variable", var_name));
+            throw new HScriptCompileException("Variable '{0}' is not a global variable", var_name);
 
         }
 

@@ -92,6 +92,12 @@ namespace Equus.Andalusian
             protected set;
         }
 
+        public bool SupportsMapReduce
+        {
+            get;
+            protected set;
+        }
+
         // Methods //
         public abstract TNode CloneOfMe();
 

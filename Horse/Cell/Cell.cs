@@ -2766,7 +2766,7 @@ namespace Equus.Horse
                 if (Type == CellAffinity.BOOL || Type == CellAffinity.INT || Type == CellAffinity.DATE_TIME || Type == CellAffinity.DOUBLE)
                 {
                     C = Cell.TryParse(C.STRING, Type);
-                    C.INT = 0;
+                    //C.INT = 0;
                     return C;
                 }
                 else if (Type == CellAffinity.BLOB)
@@ -2797,9 +2797,9 @@ namespace Equus.Horse
                 {
                     if (C.BLOB.Length < 8)
                     {
-                        C.INT = 0;
-                        C.NULL = 1;
-                        return C;
+                        byte[] b = new byte[8];
+                        Array.Copy(C.BLOB, b, C.BLOB.Length);
+                        C.BLOB = b;
                     }
                     long l = BitConverter.ToInt64(C.BLOB, 0);
 
@@ -3070,27 +3070,6 @@ namespace Equus.Horse
         #region StringFunctions
 
         /// <summary>
-        /// Returns either the sub stirng or sub blob
-        /// </summary>
-        /// <param name="C">Cell value</param>
-        /// <param name="Position">The starting point</param>
-        /// <param name="Length">The maximum length of the new string</param>
-        /// <returns>Either a string or blob value</returns>
-        public static Cell Substring(Cell C, long Position, long Length)
-        {
-
-            if (C.AFFINITY == CellAffinity.BLOB)
-            {
-                byte[] b = new byte[Length];
-                Array.Copy(C.BLOB, Position, b, 0, Length);
-                C.BLOB = b;
-                return C;
-            }
-            else
-                return new Cell(C.valueSTRING.Substring((int)Position, (int)Length));
-        }
-
-        /// <summary>
         /// Trims a given string value
         /// </summary>
         /// <param name="C">Cell value</param>
@@ -3158,6 +3137,39 @@ namespace Equus.Horse
             return new Cell(Source.valueSTRING.Contains(Check.valueSTRING));
         }
 
+        #endregion
+
+        #region StringBlob
+
+        /// <summary>
+        /// Returns either the sub stirng or sub blob
+        /// </summary>
+        /// <param name="C">Cell value</param>
+        /// <param name="Position">The starting point</param>
+        /// <param name="Length">The maximum length of the new string</param>
+        /// <returns>Either a string or blob value</returns>
+        public static Cell Substring(Cell C, long Position, long Length)
+        {
+
+            if (C.AFFINITY == CellAffinity.BLOB)
+            {
+                if (Position + Length > C.BLOB.Length || Position < 0 || Length < 0)
+                    return Cell.NULL_BLOB;
+                byte[] b = new byte[Length];
+                Array.Copy(C.BLOB, Position, b, 0, Length);
+                C.BLOB = b;
+                return C;
+            }
+            else if (C.AFFINITY == CellAffinity.STRING)
+            {
+                if (Position + Length > C.valueSTRING.Length || Position < 0 || Length < 0)
+                    return Cell.NULL_STRING;
+                return new Cell(C.valueSTRING.Substring((int)Position, (int)Length));
+            }
+            return new Cell(C.AFFINITY);
+
+        }
+
         /// <summary>
         /// Replaces all occurances of a string value with another string value
         /// </summary>
@@ -3167,6 +3179,10 @@ namespace Equus.Horse
         /// <returns>Cell string value</returns>
         public static Cell Replace(Cell Source, Cell LookFor, Cell ReplaceWith)
         {
+
+            if (Source.AFFINITY == CellAffinity.BOOL || Source.AFFINITY == CellAffinity.DATE_TIME 
+                || Source.AFFINITY == CellAffinity.DOUBLE || Source.AFFINITY == CellAffinity.INT)
+                return new Cell(Source.AFFINITY);
 
             if (!(Source.AFFINITY == CellAffinity.BLOB && LookFor.AFFINITY == CellAffinity.BLOB && ReplaceWith.AFFINITY == CellAffinity.BLOB))
             {
@@ -3179,9 +3195,61 @@ namespace Equus.Horse
             string t = BitConverter.ToString(Source.BLOB);
             string u = BitConverter.ToString(LookFor.BLOB);
             string v = BitConverter.ToString(ReplaceWith.BLOB);
-            t = t.Replace(u, v).Replace("-","");
+            t = t.Replace(u, v).Replace("-", "");
             Source.BLOB = Cell.Parse(t, CellAffinity.BLOB).BLOB;
             return Source;
+
+        }
+
+        public static Cell Position(Cell Source, Cell Pattern, int StartAt)
+        {
+
+            if (StartAt < 0)
+                StartAt = 0;
+
+            if (StartAt > Source.Size)
+                return new Cell(Source.AFFINITY);
+
+            if (Source.AFFINITY == CellAffinity.STRING)
+            {
+                return new Cell(Source.STRING.IndexOf(Pattern.valueSTRING, StartAt));
+            }
+
+            if (Source.AFFINITY == CellAffinity.BLOB)
+            {
+
+                byte[] data = Source.BLOB;
+                byte[] pattern = Pattern.valueBLOB;
+                bool match = false;
+                for (int i = StartAt; i < data.Length; i++)
+                {
+
+                    match = true;
+                    for (int j = 0; j < pattern.Length; j++)
+                    {
+                        if (i + j >= data.Length)
+                        {
+                            match = false;
+                            break;
+                        }
+                        if (data[i + j] != pattern[j])
+                        {
+                            match = false;
+                            break;
+                        }
+
+                    }
+
+                    if (match)
+                    {
+                        return new Cell(i);
+                    }
+
+                }
+
+            }
+
+            return new Cell(Source.AFFINITY);
 
         }
 

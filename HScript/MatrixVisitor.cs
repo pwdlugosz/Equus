@@ -195,7 +195,7 @@ namespace Equus.HScript
                 return new MNodeHeap(this._parent, this.Local.Arrays, this.Local.Arrays.GetPointer(name));
             else if (this.Home.GlobalHeap.Arrays.Exists(name))
                 return new MNodeHeap(this._parent, this.Home.GlobalHeap.Arrays, this.Home.GlobalHeap.Arrays.GetPointer(name));
-            throw new Exception(string.Format("Matrix '{0}' not found", name));
+            throw new HScriptCompileException("Matrix '{0}' not found", name);
         }
 
         public override MNode VisitMatrixLiteral(HScriptParser.MatrixLiteralContext context)
@@ -207,15 +207,11 @@ namespace Equus.HScript
             CellMatrix matrix = new CellMatrix(Rows, Cols, affinity);
             
             for (int i = 0; i < Rows; i++)
-            {
-                
+            { 
                 for (int j = 0; j < Cols; j++)
                 {
-
                     matrix[i,j] = this.Evaluator.ToNode(context.matrix_literal().vector_literal()[j].expression()[i]).Evaluate();
-
                 }
-
             }
 
             return new MNodeLiteral(this._parent, matrix);

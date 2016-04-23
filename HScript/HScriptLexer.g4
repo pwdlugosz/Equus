@@ -56,6 +56,7 @@ OR : O R;
 AND : A N D;
 XOR : X O R;
 NOT : N O T | '!';
+PACK : '$';
 
 // Files //
 K_CREATE_FILE : C R E A T E '_' F I L E;
@@ -76,6 +77,7 @@ K_BIND : B I N D;
 K_BY : B Y;
 K_CASE : C A S E;
 K_CHUNK : C H U N K;
+K_CLOSE : C L O S E;
 K_CREATE : C R E A T E;
 K_DATA : D A T A;
 K_DECLARE : D E C L A R E;
@@ -85,6 +87,7 @@ K_ELSE : E L S E;
 K_END : E N D;
 K_ESCAPE : E S C A P E;
 K_EXEC : E X E C | E X E C U T E;
+K_FILE : F I L E;
 K_FINAL : F I N A L | F I N A L I Z E;
 K_FOR : F O R;
 K_FULL : F U L L;
@@ -110,7 +113,9 @@ K_MERGE : M E R G E;
 K_NOT : N O T;
 K_NULL : N U L L;
 K_ON : O N;
+K_OPEN : O P E N;
 K_ORDER : O R D E R;
+K_OUT : O U T;
 K_OVER : O V E R;
 K_PARTITIONS : P A R T I T I O N S | T H R E A D S;
 K_PRINT : P R I N T;
@@ -137,6 +142,7 @@ K_WHEN : W H E N;
 K_WHERE : W H E R E;
 K_WITH : W I T H;
 K_WHILE : W H I L E;
+K_WRITE : W R I T E;
 
 // Core types //
 T_BLOB : B L O B;
@@ -182,7 +188,7 @@ LITERAL_STRING
 	;
 
 // Command Term //
-CTERM : '%;';
+CTERM : '%;' | G O ';';
 
 // Scalar Identifier Parameter Text //
 BEACON : '@@' IDENTIFIER;

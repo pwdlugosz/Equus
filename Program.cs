@@ -15,6 +15,7 @@ using Equus.Thoroughbred.ManOWar;
 using Equus.Gidran;
 using Equus.Nokota;
 using System.Drawing;
+using System.Xml.Linq;
 
 /*
  * Mustang : core data libraries

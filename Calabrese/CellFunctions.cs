@@ -739,6 +739,26 @@ namespace Equus.Calabrese
 
     }
 
+    public sealed class CellFuncFKPosition : CellFuncFixedKnown
+    {
+
+        public CellFuncFKPosition()
+            : base(FunctionNames.FUNC_POSITION, 3, CellAffinity.INT)
+        {
+        }
+
+        public override Cell Evaluate(params Cell[] Data)
+        {
+            return Cell.Position(Data[0], Data[1], (int)Data[2].valueINT);
+        }
+
+        public override int ReturnSize(CellAffinity Type, params int[] Sizes)
+        {
+            return 8;
+        }
+
+    }
+
     public sealed class CellFuncFKLength : CellFuncFixedKnown
     {
 
@@ -2420,6 +2440,7 @@ namespace Equus.Calabrese
         public const string FUNC_SLEFT = "sleft";
         public const string FUNC_SRIGHT = "sright";
         public const string FUNC_REPLACE = "replace";
+        public const string FUNC_POSITION = "position";
         public const string FUNC_LENGTH = "length";
         public const string FUNC_IS_NULL = "isnull";
         public const string FUNC_IS_NOT_NULL = "isnotnull";
@@ -2579,6 +2600,7 @@ namespace Equus.Calabrese
             { FunctionNames.FUNC_SLEFT, () => { return new CellFuncFKLeft();}},
             { FunctionNames.FUNC_SRIGHT, () => { return new CellFuncFKRight();}},
             { FunctionNames.FUNC_REPLACE, () => { return new CellFuncFKReplace();}},
+            { FunctionNames.FUNC_POSITION, () => { return new CellFuncFKPosition();}},
             { FunctionNames.FUNC_LENGTH, () => { return new CellFuncFKLength();}},
             { FunctionNames.FUNC_IS_NULL, () => { return new CellFuncFKIsNull();}},
             { FunctionNames.FUNC_IS_NOT_NULL, () => { return new CellFuncFKIsNotNull();}},

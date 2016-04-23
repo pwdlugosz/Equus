@@ -15,9 +15,6 @@ command
 	// Actions //
 	: command_action
 
-	// Executes //
-	//| inline_script
-	
 	// CRUDAM Commands //
 	| crudam_read
 	| crudam_read_fast
@@ -30,6 +27,7 @@ command
 	| crudam_delete
 	| crudam_aggregate
 	| crudam_merge
+	| file_method
 	;
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -45,65 +43,87 @@ command
 	Note: Read comes first because we need the declarations
 
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
-/* * * * * * * * * * * * * * * * * * * * * MODEL * * * * * * * * * * * * * * * * * * * * *
 
-* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-
-/* * * * * * * * * * * * * * * * * * * * * READ * * * * * * * * * * * * * * * * * * * * *
+/* * * * * * * * * * * * * * * * * * * * * READ - STRUCTURED * * * * * * * * * * * * * * * * * * * * *
 	
-	READ Financial.STOCKS AS T 
-	WHERE YEAR(T.TRADE_DATE) <= 2015 AND YEAR(T.TRADE_DATE) >= 2010
-	DECLARE LAG_PRICE AS DOUBLE, TICKS AS INT
-	PREFIX
-		LAG_PRICE = @@NULL_DOUBLE,
-		TICKS = -1
-	MAIN
-		TICKS++,
-		RETURN T.TRADE_DATE, T.TICKER, T.VOLUME, LOG(T.PRICE) - LOG(LOCAL.LAG_PRICE) AS LOG_RETURN TO LOG_RETURN_S1
-		LOCAL.LAG_PRICE = T.PRICE
-	POST
-		PRINT 'COMPLETE'
-	;
+	READ DATA.STOCKS
+		WHERE YEAR(TRADE_DATE) == 2015;
+	DECLARE
+		LOG_RETURN AS DOUBLE = 0D, OPEN_CLOSE AS DOUBLE = 0D;
+	INIT
+		BEGIN
 
+		END;
+	MAIN
+		BEGIN
+
+		END;
+	FINAL
+		BEGIN
+
+		END;
+	GO;
 
 */
 crudam_read : 
-	K_READ full_table_name (K_AS IDENTIFIER)? SEMI_COLON 
-	(where_clause SEMI_COLON)?
+	K_READ full_table_name (K_AS IDENTIFIER)? (where_clause)? SEMI_COLON
 	(crudam_declare_many)? 
 	(init_action)? 
 	main_action
 	(final_action)?;
+
+/* * * * * * * * * * * * * * * * * * * * * READ - FAST * * * * * * * * * * * * * * * * * * * * *
+	
+	READ DATA.STOCKS
+		WHERE YEAR(TRADE_DATE) == 2015;
+		CREATE TABLE DATA.STOCKS_2015 AS TABLE.*;
+	GO;
+
+*/
 crudam_read_fast : 
-	K_READ full_table_name (K_AS IDENTIFIER)? SEMI_COLON 
-	(where_clause SEMI_COLON )?
+	K_READ full_table_name (K_AS IDENTIFIER)? (where_clause)? SEMI_COLON 
 	return_action;
+
+/* * * * * * * * * * * * * * * * * * * * * READ - MAP/REDUCE * * * * * * * * * * * * * * * * * * * * *
+	
+	READ DATA.STOCKS
+		WHERE YEAR(TRADE_DATE) == 2015;
+		MAP
+			BEGIN
+
+			END;
+		REDUCE
+			BEGIN
+			END;
+	GO;
+
+*/
 crudam_read_mapr : 
-	K_READ full_table_name (K_AS IDENTIFIER)? SEMI_COLON 
-	(where_clause SEMI_COLON)? 
+	K_READ full_table_name (K_AS IDENTIFIER)? (where_clause)? SEMI_COLON
 	(partitions)?
 	(crudam_declare_many)? 
 	map_action
 	(reduce_action)?;
 
-init_action : K_INITIAL SEMI_COLON query_action;
-main_action : K_MAIN SEMI_COLON query_action;
-map_action : K_MAP SEMI_COLON query_action;
-reduce_action : K_REDUCE SEMI_COLON query_action;
-final_action : K_FINAL SEMI_COLON query_action;
+init_action : K_INITIAL query_action;
+main_action : K_MAIN query_action;
+map_action : K_MAP query_action;
+reduce_action : K_REDUCE query_action;
+final_action : K_FINAL query_action;
 
 
-/* * * * * * * * * * * * * * * * * * * * * CREATE * * * * * * * * * * * * * * * * * * * * *
+/* * * * * * * * * * * * * * * * * * * * * CREATE TABLE * * * * * * * * * * * * * * * * * * * * *
 	
-	CREATE TABLE Financial.STOCKS(TICKER STRING TRUE, TRADE_DATE DATE TRUE, VOLUME INT TRUE, PRICE DOUBLE TRUE);
-	DECLARE GLOBAL TABLE YEAR_SUMMARY(YEAR INT TRUE, AVG_VOLUME DOUBLE, LOW_PRICE DOUBLE TRUE, HIGH_PRICE DOUBLE TRUE);
-
-	DECLARE ARRAY_TEST AS INT[1+2+3];
-
-	DECLARE TICKER_COUNT AS INT = 0, DAY_COUNT AS INT = 0;
-	DECLARE TICKS AS INT = 0
-
+	CREATE TABLE Financial.STOCKS
+	(
+		TICKER STRING TRUE, 
+		TRADE_DATE DATE TRUE, 
+		VOLUME INT TRUE, 
+		PRICE DOUBLE TRUE
+	);
+	CHUNK SIZE 10000;
+	GO;
+	
 
 */
 crudam_create_table : 
@@ -112,9 +132,25 @@ crudam_create_table :
 crudam_declare_table : K_DECLARE K_TABLE? IDENTIFIER LPAREN create_table_unit (COMMA create_table_unit)* RPAREN SEMI_COLON;
 create_table_unit : IDENTIFIER K_AS? type (expression)?;
 create_table_size : K_CHUNK K_SIZE expression;
+
+/* * * * * * * * * * * * * * * * * * * * * LAMBDA * * * * * * * * * * * * * * * * * * * * *
+	
+	LAMBDA LOGIT(X) AS DOUBLE => 1 / (1 + EXP(-X)); GO;
+
+*/
 crudam_lambda : lambda_unit SEMI_COLON;
 
-crudam_declare_many : K_DECLARE SEMI_COLON (declare_generic SEMI_COLON)+;
+/* * * * * * * * * * * * * * * * * * * * * DECLARE * * * * * * * * * * * * * * * * * * * * *
+	
+	DECLARE
+		A AS INT = 0,
+		B AS DOUBLE = 0D,
+		C AS DATE = NOW()
+	;
+	GO;
+
+*/
+crudam_declare_many : K_DECLARE declare_generic (COMMA declare_generic)* SEMI_COLON;
 declare_generic
 	: IDENTIFIER K_AS type (ASSIGN expression)?														# DeclareScalar
 	| IDENTIFIER LBRAC expression RBRAC K_AS type													# DeclareMatrix1D
@@ -128,7 +164,7 @@ declare_generic
 
 */
 crudam_update : 
-	K_UPDATE full_table_name SEMI_COLON
+	K_UPDATE full_table_name
 	(where_clause)? SEMI_COLON
 	K_SET update_unit (COMMA update_unit)* SEMI_COLON;
 update_unit : IDENTIFIER ASSIGN expression;
@@ -139,8 +175,7 @@ update_unit : IDENTIFIER ASSIGN expression;
 	
 */
 crudam_delete : 
-	K_DELETE full_table_name SEMI_COLON
-	(where_clause SEMI_COLON)?;
+	K_DELETE full_table_name (where_clause)? SEMI_COLON;
 
 /* * * * * * * * * * * * * * * * * * * * * AGGREGATE * * * * * * * * * * * * * * * * * * * * *
 	
@@ -153,8 +188,7 @@ crudam_delete :
 
 */
 crudam_aggregate : 
-	K_AGGREGATE full_table_name (K_AS IDENTIFIER)? SEMI_COLON
-	(where_clause SEMI_COLON)? 
+	K_AGGREGATE full_table_name (K_AS IDENTIFIER)? (where_clause)?  SEMI_COLON
 	(partitions)?
 	(K_BY expression_alias_list SEMI_COLON)? 
 	(K_OVER beta_reduction_list SEMI_COLON)? 
@@ -171,9 +205,9 @@ by_clause : K_BY expression_alias_list;
 
 */
 crudam_merge : 
-	K_MERGE (merge_type)? merge_source K_WITH merge_source SEMI_COLON
-	(K_ON merge_equi_predicate (AND merge_equi_predicate)* SEMI_COLON)? 
-	(where_clause SEMI_COLON)? 
+	K_MERGE (merge_type)? merge_source K_WITH merge_source 
+		(K_ON merge_equi_predicate (AND merge_equi_predicate)*)? 
+		(where_clause)? SEMI_COLON
 	(merge_algorithm SEMI_COLON)?
 	return_action SEMI_COLON;
 merge_source : full_table_name K_AS IDENTIFIER;
@@ -192,12 +226,12 @@ merge_type
 // Partition Statement //
 partitions : K_PARTITIONS (expression)? SEMI_COLON;
 
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	Execute
-		-- runs either a Horse procedure
+	File Actions
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
-// Execute //
-//inline_script : K_INLINE expression SEMI_COLON (bind_element_set)?;
+file_method : K_FILE DOT file_name (expression (COMMA expression)*)? SEMI_COLON;
+file_name : IDENTIFIER | K_CREATE | K_DELETE;
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	Actions:
@@ -212,13 +246,13 @@ query_action
 	: variable_assign																								# ActScalarAssign // x = y
 	| print_action																									# ActPrint
 	| return_action SEMI_COLON																						# ActReturn // Return A, B AS C, D * E / F AS G
-	| K_BEGIN SEMI_COLON (query_action)+ K_END SEMI_COLON															# ActBeginEnd // Begin <...> End
+	| K_BEGIN (query_action)+ K_END SEMI_COLON																		# ActBeginEnd // Begin <...> End
 	| K_ESCAPE K_FOR SEMI_COLON																						# ActEscapeFor
 	| K_ESCAPE K_READ SEMI_COLON																					# ActEscapeRead
 	| system_action																									# ActSys
 	| matrix_name ASSIGN matrix_expression SEMI_COLON																# ActMatAssign
 	| matrix_unit_assign																							# ActMatUnitAssign
-	| execute_script SEMI_COLON																						# ActExecuteScript
+	| execute_script																								# ActExecuteScript
 	| K_IF expression SEMI_COLON K_THEN query_action (SEMI_COLON K_ELSE query_action)?								# ActIf // IF t == v THEN (x++) ELSE (x--)
 	| K_FOR variable ASSIGN expression K_TO expression SEMI_COLON query_action										# ActFor // For T = 0 to 10 (I++,I--)
 	| K_WHILE expression SEMI_COLON query_action																	# ActWhile
@@ -246,25 +280,24 @@ matrix_unit_assign
 
 // Assign //
 variable_assign
-	: variable ASSIGN expression SEMI_COLON									# ActAssign
-	| variable INC expression SEMI_COLON										# ActInc
-	| variable AUTO_INC SEMI_COLON												# ActAutoInc
-	| variable DEC expression SEMI_COLON										# ActDec
-	| variable AUTO_DEC SEMI_COLON												# ActAutoDec
+	: variable ASSIGN expression SEMI_COLON		# ActAssign
+	| variable INC expression SEMI_COLON		# ActInc
+	| variable AUTO_INC SEMI_COLON				# ActAutoInc
+	| variable DEC expression SEMI_COLON		# ActDec
+	| variable AUTO_DEC SEMI_COLON				# ActAutoDec
 	;
-
 
 // System action //
 system_action : K_EXEC IDENTIFIER SEMI_COLON hparameter_set?;
 
-// Execute //
+// Execute - MARK FOR DELETE //
 execute_script : K_EXEC K_SCRIPT expression SEMI_COLON (bind_element_set)?;
 bind_element_set : K_BIND SEMI_COLON (bind_element SEMI_COLON)+;
 bind_element : SCALAR ASSIGN (K_STATIC | K_DYNAMIC)? expression;
 
 hparameter_set : hparameter*;
-hparameter : SCALAR ASSIGN (K_DATA full_table_name | expression | expression_alias_list | lambda_unit | matrix_expression) SEMI_COLON;
-	
+hparameter : SCALAR ASSIGN (K_DATA full_table_name | expression | expression_alias_list | lambda_unit | matrix_expression | K_OUT IDENTIFIER) SEMI_COLON;
+
 // 'TO' methods //
 return_action : (K_INSERT K_INTO | K_CREATE K_TABLE) full_table_name K_VALUES expression_or_wildcard_set;
 
@@ -308,7 +341,7 @@ vector_literal : LCURL expression (COMMA expression)* RCURL;
 	Expressions:
 
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */ 
-
+ // Lambdas //
 lambda_unit
 	: K_LAMBDA IDENTIFIER LPAREN (IDENTIFIER (COMMA IDENTIFIER)*)? RPAREN LAMBDA expression	# LambdaGeneric
 	| K_LAMBDA IDENTIFIER LAMBDA K_GRADIENT IDENTIFIER K_OVER IDENTIFIER					# LambdaGradient 
@@ -347,7 +380,6 @@ expression
 	| expression CAST type  																			# Cast
 	| variable																							# ExpressionVariable
 	| cell																								# Static
-	| BEACON																							# Beacon
 	| expression NULL_OP expression																		# IfNullOp
 	| expression IF_OP expression (ELSE_OP expression)?													# IfOp
 	| K_CASE (K_WHEN expression K_THEN expression)+ (K_ELSE expression)? K_END							# CaseOp
@@ -407,9 +439,6 @@ full_table_name
 table_name : IDENTIFIER;
 database_name : IDENTIFIER;
 function_name : IDENTIFIER;
-
-// Objects //
-
 
 // Types //
 type : (T_BLOB | T_BOOL | T_DATE | T_DOUBLE | T_INT | T_STRING) (DOT LITERAL_INT)?;

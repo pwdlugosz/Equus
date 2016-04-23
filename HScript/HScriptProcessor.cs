@@ -20,7 +20,8 @@ namespace Equus.HScript
     public sealed class HScriptProcessor
     {
 
-        private bool _CanRun = true;
+        private bool _ExitAfterException = true;
+        private int _CompileCount = 0;
         private List<string> _CompileErrorMessages;
 
         public HScriptProcessor(Workspace UseHome)
@@ -77,19 +78,40 @@ namespace Equus.HScript
 
         }
 
-        internal void RenderCommand(HScriptParser.CommandContext Context, CommandVisitor Processor)
+        internal bool RenderCommand(HScriptParser.CommandContext Context, CommandVisitor Processor)
         {
 
             // Consume //
-            CommandPlan plan = Processor.Visit(Context);
-            
+            CommandPlan plan;
+            try
+            {
+                plan = Processor.Visit(Context);
+            }
+            catch (HScriptCompileException hce)
+            {
+                this.Home.IO.Communicate(string.Format("Compile Error for statement {0}", this._CompileCount));
+                this.Home.IO.Communicate(Context.GetText());
+                this.Home.IO.Communicate(hce.Message);
+                return false;
+            }
 
             // Add the header to the plan buffer //
             if (!this.Home.SupressIO)
                 this.Home.IO.Communicate();
 
             // Execute //
-            plan.Execute();
+            try
+            {
+                plan.Execute();
+            }
+            catch (HorseDataException hde)
+            {
+
+                this.Home.IO.Communicate(string.Format("Compile Error for statement {0}", this._CompileCount));
+                this.Home.IO.Communicate(hde.Message);
+                return false;
+
+            }
 
             // Communicate //
             if (!this.Home.SupressIO)
@@ -103,6 +125,8 @@ namespace Equus.HScript
                 this.Home.IO.FlushRecordBuffer();
 
             }
+
+            return true;
 
         }
 
@@ -130,7 +154,13 @@ namespace Equus.HScript
             foreach(HScriptParser.CommandContext ctx in this.Commands)
             {
 
-                this.RenderCommand(ctx, processor);
+                this._CompileCount++;
+                bool Sucsess = this.RenderCommand(ctx, processor);
+                if (!Sucsess && this._ExitAfterException)
+                {
+                    this.Home.IO.Communicate("Process terminated after critical HorseDataException");
+                    break;
+                }
 
             }
 

@@ -2083,8 +2083,7 @@ namespace Equus.Horse
 
             // Open a stream //
             byte[] b = File.ReadAllBytes(FullPath);
-            Table rs;
-
+            
             Table t = BinarySerializer.ReadTableSafe2(b, 0);
 
             // Increment Reads //

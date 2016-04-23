@@ -139,7 +139,7 @@ namespace Equus.HScript
             string var_name = this.VariableName(context.variable());
             int heap_type = this.VariableType(context.variable());
             if (heap_type != 1 && heap_type != 2)
-                throw new Exception();
+                throw new HScriptCompileException("Variable '{0}' cannot be found in either a local or global context", var_name);
             MemoryStruct h = 
                 (heap_type == 1) 
                 ? this.Home.GlobalHeap 
@@ -157,7 +157,7 @@ namespace Equus.HScript
             string var_name = this.VariableName(context.variable());
             int heap_type = this.VariableType(context.variable());
             if (heap_type != 1 && heap_type != 2)
-                throw new Exception();
+                throw new HScriptCompileException("Variable '{0}' cannot be found in either a local or global context", var_name);
             MemoryStruct h =
                (heap_type == 1)
                ? this.Home.GlobalHeap
@@ -175,7 +175,7 @@ namespace Equus.HScript
             string var_name = this.VariableName(context.variable());
             int heap_type = this.VariableType(context.variable());
             if (heap_type != 1 && heap_type != 2)
-                throw new Exception();
+                throw new HScriptCompileException("Variable '{0}' cannot be found in either a local or global context", var_name);
             MemoryStruct h =
                (heap_type == 1)
                ? this.Home.GlobalHeap
@@ -192,7 +192,7 @@ namespace Equus.HScript
             string var_name = this.VariableName(context.variable());
             int heap_type = this.VariableType(context.variable());
             if (heap_type != 1 && heap_type != 2)
-                throw new Exception();
+                throw new HScriptCompileException("Variable '{0}' cannot be found in either a local or global context", var_name);
             MemoryStruct h =
                (heap_type == 1)
                ? this.Home.GlobalHeap
@@ -209,7 +209,7 @@ namespace Equus.HScript
             string var_name = this.VariableName(context.variable());
             int heap_type = this.VariableType(context.variable());
             if (heap_type != 1 && heap_type != 2)
-                throw new Exception();
+                throw new HScriptCompileException("Variable '{0}' cannot be found in either a local or global context", var_name);
             MemoryStruct h =
                (heap_type == 1)
                ? this.Home.GlobalHeap
@@ -334,7 +334,7 @@ namespace Equus.HScript
 
             // Lookup the procedure //
             if (!SystemProcedures.Exists(Name))
-                throw new Exception(string.Format("Procedure '{0}' does not exist", Name));
+                throw new HScriptCompileException("Procedure '{0}' does not exist", Name);
             Procedure proc = SystemProcedures.Lookup(Name, this.Home, parameters);
 
             // Walk the node //
@@ -354,7 +354,7 @@ namespace Equus.HScript
             else if (this.Home.GlobalHeap.Arrays.Exists(name))
                 idx = this.Home.GlobalHeap.Arrays.GetPointer(name);
             else
-                throw new Exception(string.Format("Matrix '{0}' does not exist", name));
+                throw new HScriptCompileException("Matrix '{0}' does not exist", name);
 
             // Create a visitor //
             MNode mat = this.MatrixEvaluator.ToMatrix(context.matrix_expression());
@@ -387,7 +387,7 @@ namespace Equus.HScript
             }
             else
             {
-                throw new Exception(string.Format("Matrix does not exist in either the local or global heaps '{0}'", name));
+                throw new HScriptCompileException("Matrix does not exist in either the local or global heaps '{0}'", name);
             }
             FNode row = this.Evaluator.ToNode(context.expression()[0]);
             FNode col = this.Evaluator.ToNode(context.expression()[1]);
@@ -420,7 +420,7 @@ namespace Equus.HScript
             }
             else
             {
-                throw new Exception(string.Format("Matrix does not exist in either the local or global heaps '{0}'", name));
+                throw new HScriptCompileException("Matrix does not exist in either the local or global heaps '{0}'", name);
             }
             FNode row = this.Evaluator.ToNode(context.expression()[0]);
             FNode col = this.Evaluator.ToNode(context.expression()[1]);
@@ -453,7 +453,7 @@ namespace Equus.HScript
             }
             else
             {
-                throw new Exception(string.Format("Matrix does not exist in either the local or global heaps '{0}'", name));
+                throw new HScriptCompileException("Matrix does not exist in either the local or global heaps '{0}'", name);
             }
             FNode row = this.Evaluator.ToNode(context.expression()[0]);
             FNode col = this.Evaluator.ToNode(context.expression()[1]);
@@ -486,7 +486,7 @@ namespace Equus.HScript
             }
             else
             {
-                throw new Exception(string.Format("Matrix does not exist in either the local or global heaps '{0}'", name));
+                throw new HScriptCompileException("Matrix does not exist in either the local or global heaps '{0}'", name);
             }
             FNode row = this.Evaluator.ToNode(context.expression()[0]);
             FNode col = this.Evaluator.ToNode(context.expression()[1]);
@@ -519,7 +519,7 @@ namespace Equus.HScript
             }
             else
             {
-                throw new Exception(string.Format("Matrix does not exist in either the local or global heaps '{0}'", name));
+                throw new HScriptCompileException("Matrix does not exist in either the local or global heaps '{0}'", name);
             }
             FNode row = this.Evaluator.ToNode(context.expression()[0]);
             FNode col = this.Evaluator.ToNode(context.expression()[1]);
@@ -552,7 +552,7 @@ namespace Equus.HScript
             }
             else
             {
-                throw new Exception(string.Format("Matrix does not exist in either the local or global heaps '{0}'", name));
+                throw new HScriptCompileException("Matrix does not exist in either the local or global heaps '{0}'", name);
             }
             FNode row = this.Evaluator.ToNode(context.expression()[0]);
             FNode col = FNodeFactory.Value(0);
@@ -585,7 +585,7 @@ namespace Equus.HScript
             }
             else
             {
-                throw new Exception(string.Format("Matrix does not exist in either the local or global heaps '{0}'", name));
+                throw new HScriptCompileException("Matrix does not exist in either the local or global heaps '{0}'", name);
             }
             FNode row = this.Evaluator.ToNode(context.expression()[0]);
             FNode col = FNodeFactory.Value(0);
@@ -618,7 +618,7 @@ namespace Equus.HScript
             }
             else
             {
-                throw new Exception(string.Format("Matrix does not exist in either the local or global heaps '{0}'", name));
+                throw new HScriptCompileException("Matrix does not exist in either the local or global heaps '{0}'", name);
             }
             FNode row = this.Evaluator.ToNode(context.expression()[0]);
             FNode col = FNodeFactory.Value(0);
@@ -651,7 +651,7 @@ namespace Equus.HScript
             }
             else
             {
-                throw new Exception(string.Format("Matrix does not exist in either the local or global heaps '{0}'", name));
+                throw new HScriptCompileException("Matrix does not exist in either the local or global heaps '{0}'", name);
             }
             FNode row = this.Evaluator.ToNode(context.expression());
             FNode col = FNodeFactory.Value(0);
@@ -684,7 +684,7 @@ namespace Equus.HScript
             }
             else
             {
-                throw new Exception(string.Format("Matrix does not exist in either the local or global heaps '{0}'", name));
+                throw new HScriptCompileException("Matrix does not exist in either the local or global heaps '{0}'", name);
             }
             FNode row = this.Evaluator.ToNode(context.expression());
             FNode col = FNodeFactory.Value(0);
@@ -706,7 +706,7 @@ namespace Equus.HScript
                 foreach (HScriptParser.Bind_elementContext ctx in context.bind_element_set().bind_element())
                 {
                     string scalar_name = ctx.SCALAR().GetText();
-                    FNode value = this.Evaluator.ToNode(ctx.expression());
+                    FNode value = (ctx.K_STATIC() != null ? FNodeFactory.Value(ctx.expression().GetText()) : this.Evaluator.ToNode(ctx.expression()));
                     bindings.Add(scalar_name, value);
                 }
             }
